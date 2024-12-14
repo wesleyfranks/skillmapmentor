@@ -10,7 +10,6 @@ import { useUserData } from "@/hooks/useUserData";
 const Profile = () => {
   const { user } = useAuth();
 
-  // If there's no user, redirect to login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -25,6 +24,7 @@ const Profile = () => {
     handleSaveResume,
     handleDeleteResume,
     handleResumeTextChange,
+    handleReanalyze,
   } = useResume(user.id);
 
   const { isLoading } = useUserData(user.id, handleResumeTextChange);
@@ -53,6 +53,7 @@ const Profile = () => {
                 resumeText={resumeText}
                 isAnalyzing={isAnalyzing}
                 keywords={keywords}
+                onReanalyze={handleReanalyze}
               />
             </>
           )}

@@ -1,21 +1,39 @@
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 interface KeywordAnalysisProps {
   resumeText: string;
   isAnalyzing: boolean;
   keywords: string[];
+  onReanalyze: () => void;
 }
 
 export const KeywordAnalysis = ({
   resumeText,
   isAnalyzing,
   keywords,
+  onReanalyze,
 }: KeywordAnalysisProps) => {
   if (!resumeText) return null;
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold">Keywords Found</h2>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onReanalyze}
+          disabled={isAnalyzing}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className={`h-4 w-4 ${isAnalyzing ? 'animate-spin' : ''}`} />
+          {isAnalyzing ? "Analyzing..." : "Re-analyze"}
+        </Button>
+      </div>
+
       {isAnalyzing && (
         <div className="space-y-2">
           <Progress value={75} className="w-full" />
@@ -29,18 +47,15 @@ export const KeywordAnalysis = ({
       )}
 
       {keywords.length > 0 && !isAnalyzing && (
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold">Keywords Found</h2>
-          <div className="flex flex-wrap gap-2">
-            {keywords.map((keyword, index) => (
-              <span
-                key={index}
-                className="bg-primary/10 text-primary px-2 py-1 rounded-md text-sm animate-fade-in"
-              >
-                {keyword}
-              </span>
-            ))}
-          </div>
+        <div className="flex flex-wrap gap-2">
+          {keywords.map((keyword, index) => (
+            <span
+              key={index}
+              className="bg-primary/10 text-primary px-2 py-1 rounded-md text-sm animate-fade-in"
+            >
+              {keyword}
+            </span>
+          ))}
         </div>
       )}
     </div>
