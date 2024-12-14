@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 import * as pdfjs from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.mjs'
-import pdfjsWorker from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.worker.mjs'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -55,7 +54,7 @@ serve(async (req) => {
     console.log('Extracting text from PDF...');
     
     // Configure PDF.js worker
-    pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+    pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.worker.min.js';
 
     // Load the PDF document
     const pdfData = new Uint8Array(fileBuffer);
