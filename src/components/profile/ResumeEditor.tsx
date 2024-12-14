@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Pencil, Trash2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import * as pdfjs from 'pdfjs-dist';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +16,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+
+// Configure PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 interface ResumeEditorProps {
   resumeText: string;
@@ -41,6 +45,23 @@ export const ResumeEditor = ({
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
+  const extractTextFromPDF = async (arrayBuffer: ArrayBuffer) => {
+    const loadingTask = pdfjs.getDocument(arrayBuffer);
+    const pdf = await loadingTask.promise;
+    let extractedText = '';
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      extractedText += pageText + '\n';
+    }
+
+    return extractedText;
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !file.type.includes('pdf')) {
@@ -54,17 +75,23 @@ export const ResumeEditor = ({
 
     setIsUploading(true);
     try {
+      // First, extract text from the PDF locally
+      const arrayBuffer = await file.arrayBuffer();
+      const extractedText = await extractTextFromPDF(arrayBuffer);
+
+      // Then upload the file to Supabase
       const formData = new FormData();
       formData.append('file', file);
       formData.append('userId', userId);
 
-      const { data, error } = await supabase.functions.invoke('process-pdf', {
+      const { error } = await supabase.functions.invoke('process-pdf', {
         body: formData,
       });
 
       if (error) throw error;
 
-      onChange(data.extractedText);
+      // Update the text area with extracted text
+      onChange(extractedText);
       toast({
         title: "Success",
         description: "PDF uploaded and processed successfully",

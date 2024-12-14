@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import * as pdfjs from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.mjs'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -50,36 +49,20 @@ serve(async (req) => {
       throw uploadError;
     }
 
-    // Extract text from PDF using pdf.js
-    console.log('Extracting text from PDF...');
-    
-    // Configure PDF.js worker
-    pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.worker.min.js';
+    // Get the file URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('resumes')
+      .getPublicUrl(filePath)
 
-    // Load the PDF document
-    const pdfData = new Uint8Array(fileBuffer);
-    const loadingTask = pdfjs.getDocument({ data: pdfData });
-    const pdfDoc = await loadingTask.promise;
-    
-    let extractedText = '';
-    
-    // Extract text from each page
-    for (let i = 1; i <= pdfDoc.numPages; i++) {
-      const page = await pdfDoc.getPage(i);
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ');
-      extractedText += pageText + '\n';
-    }
+    // Use PDF.js in the browser instead
+    // For now, we'll just store the file and let the frontend handle text extraction
+    console.log('File uploaded successfully');
 
-    console.log('Updating user record...');
-    // Update user record with file path and extracted text
+    // Update user record with file path
     const { error: updateError } = await supabase
       .from('users')
       .update({
         resume_file_path: filePath,
-        resume_text: extractedText
       })
       .eq('id', userId)
 
@@ -88,16 +71,15 @@ serve(async (req) => {
       throw updateError;
     }
 
-    console.log('PDF processing completed successfully');
     return new Response(
       JSON.stringify({ 
-        message: 'PDF processed successfully',
+        message: 'PDF uploaded successfully',
         filePath,
-        extractedText 
+        publicUrl
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error processing PDF:', error);
     return new Response(
       JSON.stringify({ 
