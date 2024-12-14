@@ -14,6 +14,8 @@ export const useKeywordAnalysis = (userId: string) => {
     
     try {
       console.log('Analyzing resume text:', text.substring(0, 100) + '...');
+      console.log('Existing keywords:', existingKeywords);
+      
       const { data, error } = await supabase.functions.invoke('analyze-resume', {
         body: { 
           resumeText: text,
