@@ -27,7 +27,7 @@ const extractTextFromPDF = async (file: File): Promise<string> => {
   }
 };
 
-const usePdfHandler = (userId: string, onTextExtracted: (text: string) => void) => {
+export const usePdfHandler = (userId: string, onTextExtracted: (text: string) => void) => {
   const [isUploading, setIsUploading] = useState(false);
 
   const handleFileUpload = async (file: File) => {
@@ -74,5 +74,3 @@ const usePdfHandler = (userId: string, onTextExtracted: (text: string) => void) 
     isUploading
   };
 };
-
-export default usePdfHandler;
