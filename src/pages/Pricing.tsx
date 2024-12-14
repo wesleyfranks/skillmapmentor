@@ -11,21 +11,22 @@ const Pricing = () => {
         <div className="text-center max-w-3xl mx-auto">
           <h1 className="text-4xl font-bold mb-6">Choose Your Plan</h1>
           <p className="text-xl text-muted-foreground mb-12">
-            Start with a free analysis or choose a subscription for continuous career growth
+            Start with a single analysis or choose a subscription for continuous career growth
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card>
               <CardHeader>
-                <CardTitle>Free Trial</CardTitle>
-                <CardDescription>Perfect for first-time users</CardDescription>
+                <CardTitle>One-Time Use</CardTitle>
+                <CardDescription>Perfect for quick career analysis</CardDescription>
               </CardHeader>
               <CardContent className="text-left">
-                <div className="text-3xl font-bold mb-6">$0</div>
+                <div className="text-3xl font-bold mb-6">$19</div>
                 <ul className="space-y-2">
-                  <li>✓ One resume analysis</li>
-                  <li>✓ Basic mind map</li>
-                  <li>✓ Core skill insights</li>
+                  <li>✓ Single resume analysis</li>
+                  <li>✓ Complete mind map</li>
+                  <li>✓ Skill insights</li>
+                  <li>✓ Export your data</li>
                 </ul>
               </CardContent>
               <CardFooter>
