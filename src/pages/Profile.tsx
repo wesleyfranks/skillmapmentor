@@ -39,8 +39,18 @@ const Profile = () => {
             
             {!isLoading && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Keywords Column - Will appear first on mobile */}
+                <div className="space-y-4 order-first lg:order-last">
+                  <KeywordAnalysis
+                    resumeText={resumeText}
+                    isAnalyzing={isAnalyzing}
+                    keywords={keywords}
+                    onReanalyze={handleReanalyze}
+                  />
+                </div>
+
                 {/* Resume Column */}
-                <div className="space-y-4">
+                <div className="space-y-4 order-last lg:order-first">
                   <ResumeEditor
                     resumeText={resumeText}
                     isEditing={isEditing}
@@ -50,16 +60,6 @@ const Profile = () => {
                     onDelete={handleDeleteResume}
                     onChange={handleResumeTextChange}
                     userId={user.id}
-                  />
-                </div>
-
-                {/* Keywords Column */}
-                <div className="space-y-4">
-                  <KeywordAnalysis
-                    resumeText={resumeText}
-                    isAnalyzing={isAnalyzing}
-                    keywords={keywords}
-                    onReanalyze={handleReanalyze}
                   />
                 </div>
               </div>
