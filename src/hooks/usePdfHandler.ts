@@ -7,8 +7,12 @@ export const usePdfHandler = (userId: string, onTextExtracted: (text: string) =>
 
   useEffect(() => {
     const initializeWorker = async () => {
-      const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.mjs');
-      pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker.default;
+      // Import the worker and set it as a URL string
+      const workerUrl = new URL(
+        'pdfjs-dist/build/pdf.worker.mjs',
+        import.meta.url
+      ).toString();
+      pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
     };
     initializeWorker();
   }, []);
