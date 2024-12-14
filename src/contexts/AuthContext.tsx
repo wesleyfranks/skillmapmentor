@@ -40,28 +40,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      if (error) throw error;
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
-      });
+
+      if (error) {
+        if (error.message.includes("Email not confirmed")) {
+          toast({
+            variant: "destructive",
+            title: "Email not confirmed",
+            description: "Please check your email for the confirmation link.",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Error signing in",
+            description: error.message,
+          });
+        }
+        throw error;
+      }
+
+      if (data?.user) {
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
+      }
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error signing in",
-        description: error.message,
-      });
+      // Error is already handled above
       throw error;
     }
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -70,17 +85,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           },
         },
       });
-      if (error) throw error;
-      toast({
-        title: "Welcome!",
-        description: "Your account has been created successfully.",
-      });
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error signing up",
+          description: error.message,
+        });
+        throw error;
+      }
+
+      if (data?.user) {
+        if (data.session === null) {
+          toast({
+            title: "Verification email sent",
+            description: "Please check your email to confirm your account.",
+          });
+        } else {
+          toast({
+            title: "Welcome!",
+            description: "Your account has been created successfully.",
+          });
+        }
+      }
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error signing up",
-        description: error.message,
-      });
+      // Error is already handled above
       throw error;
     }
   };
@@ -88,17 +117,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error signing out",
+          description: error.message,
+        });
+        throw error;
+      }
       toast({
         title: "Signed out",
         description: "You have been signed out successfully.",
       });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error signing out",
-        description: error.message,
-      });
+      // Error is already handled above
       throw error;
     }
   };
