@@ -34,7 +34,6 @@ serve(async (req) => {
 
     // Upload file to Supabase Storage
     console.log('Uploading file to storage...');
-    const fileBuffer = await file.arrayBuffer()
     const filePath = `${userId}/${crypto.randomUUID()}.pdf`
 
     const { error: uploadError } = await supabase.storage
@@ -49,15 +48,6 @@ serve(async (req) => {
       throw uploadError;
     }
 
-    // Get the file URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('resumes')
-      .getPublicUrl(filePath)
-
-    // Use PDF.js in the browser instead
-    // For now, we'll just store the file and let the frontend handle text extraction
-    console.log('File uploaded successfully');
-
     // Update user record with file path
     const { error: updateError } = await supabase
       .from('users')
@@ -71,11 +61,11 @@ serve(async (req) => {
       throw updateError;
     }
 
+    console.log('File processed successfully');
     return new Response(
       JSON.stringify({ 
-        message: 'PDF uploaded successfully',
-        filePath,
-        publicUrl
+        message: 'PDF processed successfully',
+        filePath
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
