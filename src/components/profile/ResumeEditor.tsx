@@ -30,8 +30,8 @@ export const ResumeEditor = ({
   const { isUploading, handleFileUpload } = usePdfHandler(userId, onChange);
 
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between items-center">
+    <div className="h-full">
+      <div className="flex justify-between items-center mb-4">
         <label className="text-sm font-medium text-muted-foreground">Resume Text</label>
         <div className="flex gap-2">
           <Button
@@ -78,13 +78,15 @@ export const ResumeEditor = ({
         />
       </div>
 
-      <ResumeContent
-        isEditing={isEditing}
-        resumeText={resumeText}
-        onChange={onChange}
-        onSave={onSave}
-        isSaving={isSaving}
-      />
+      <div className="h-[calc(100vh-20rem)] overflow-y-auto">
+        <ResumeContent
+          isEditing={isEditing}
+          resumeText={resumeText}
+          onChange={onChange}
+          onSave={onSave}
+          isSaving={isSaving}
+        />
+      </div>
     </div>
   );
 };

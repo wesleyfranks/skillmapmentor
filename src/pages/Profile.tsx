@@ -31,34 +31,42 @@ const Profile = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Card className="max-w-2xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-6">Profile</h1>
-        <div className="space-y-4">
-          <ProfileHeader user={user} isLoading={isLoading} />
-          
-          {!isLoading && (
-            <>
-              <ResumeEditor
-                resumeText={resumeText}
-                isEditing={isEditing}
-                isSaving={isSaving}
-                onEdit={() => setIsEditing(!isEditing)}
-                onSave={handleSaveResume}
-                onDelete={handleDeleteResume}
-                onChange={handleResumeTextChange}
-                userId={user.id}
-              />
+      <div className="max-w-7xl mx-auto">
+        <Card className="p-6">
+          <h1 className="text-2xl font-bold mb-6">Profile</h1>
+          <div className="space-y-4">
+            <ProfileHeader user={user} isLoading={isLoading} />
+            
+            {!isLoading && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Resume Column */}
+                <div className="space-y-4">
+                  <ResumeEditor
+                    resumeText={resumeText}
+                    isEditing={isEditing}
+                    isSaving={isSaving}
+                    onEdit={() => setIsEditing(!isEditing)}
+                    onSave={handleSaveResume}
+                    onDelete={handleDeleteResume}
+                    onChange={handleResumeTextChange}
+                    userId={user.id}
+                  />
+                </div>
 
-              <KeywordAnalysis
-                resumeText={resumeText}
-                isAnalyzing={isAnalyzing}
-                keywords={keywords}
-                onReanalyze={handleReanalyze}
-              />
-            </>
-          )}
-        </div>
-      </Card>
+                {/* Keywords Column */}
+                <div className="space-y-4">
+                  <KeywordAnalysis
+                    resumeText={resumeText}
+                    isAnalyzing={isAnalyzing}
+                    keywords={keywords}
+                    onReanalyze={handleReanalyze}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };
