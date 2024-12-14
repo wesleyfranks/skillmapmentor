@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import * as pdfjs from 'pdfjs-dist';
 import { useToast } from "@/hooks/use-toast";
 
 // Configure PDF.js worker
-const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.mjs');
-pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 export const usePdfHandler = (userId: string, onTextExtracted: (text: string) => void) => {
   const [isUploading, setIsUploading] = useState(false);
