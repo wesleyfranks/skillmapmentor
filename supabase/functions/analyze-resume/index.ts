@@ -10,7 +10,21 @@ const corsHeaders = {
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-const analyzeWithRetry = async (resumeText: string, retries = 3, initialDelay = 1000) => {
+const extractRetryAfter = (error: any): number => {
+  try {
+    if (typeof error === 'string') {
+      const match = error.match(/Please try again in (\d+)ms/);
+      return match ? parseInt(match[1]) : 2000;
+    }
+    return 2000;
+  } catch {
+    return 2000;
+  }
+};
+
+const analyzeWithRetry = async (resumeText: string, retries = 3) => {
+  let lastError;
+  
   for (let i = 0; i < retries; i++) {
     try {
       console.log(`Attempt ${i + 1} to analyze resume`);
@@ -34,35 +48,35 @@ const analyzeWithRetry = async (resumeText: string, retries = 3, initialDelay = 
       });
 
       const data = await response.json();
-      console.log('OpenAI response:', data);
-
+      
       if (data.error) {
-        // Check if it's a rate limit error
-        if (data.error.message?.includes('Rate limit')) {
-          const waitTime = extractWaitTime(data.error.message) || initialDelay * Math.pow(2, i);
-          console.log(`Rate limit hit, waiting ${waitTime}ms before retry`);
-          await sleep(waitTime);
+        // Handle rate limit specifically
+        if (data.error.type === 'rate_limit_exceeded' || data.error.message?.includes('Rate limit')) {
+          const retryAfter = extractRetryAfter(data.error.message);
+          console.log(`Rate limit hit, waiting ${retryAfter}ms before retry`);
+          await sleep(retryAfter);
           continue;
         }
-        throw new Error(data.error.message || 'Error analyzing resume');
+        throw new Error(data.error.message || 'Error from OpenAI API');
       }
 
       return data.choices[0].message.content;
     } catch (error) {
       console.error(`Error on attempt ${i + 1}:`, error);
-      if (i === retries - 1) throw error;
+      lastError = error;
       
-      const delay = initialDelay * Math.pow(2, i);
+      // If it's the last retry, throw the error
+      if (i === retries - 1) {
+        throw error;
+      }
+
+      // For non-rate limit errors, use exponential backoff
+      const delay = 2000 * Math.pow(2, i);
       console.log(`Waiting ${delay}ms before retry`);
       await sleep(delay);
     }
   }
-  throw new Error('Max retries reached when analyzing resume');
-};
-
-const extractWaitTime = (message: string): number | null => {
-  const match = message.match(/Please try again in (\d+)ms/);
-  return match ? parseInt(match[1]) : null;
+  throw lastError || new Error('Max retries reached');
 };
 
 serve(async (req) => {
@@ -89,14 +103,23 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in analyze-resume function:', error);
     
-    // Return a more detailed error response
+    // Check if it's a rate limit error
+    const isRateLimit = error.message?.includes('Rate limit');
+    const status = isRateLimit ? 429 : 500;
+    const retryAfter = isRateLimit ? extractRetryAfter(error.message) : null;
+    
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        retryAfter: error.message.includes('Rate limit') ? extractWaitTime(error.message) : null
+        retryAfter,
+        isRateLimit
       }), {
-        status: error.message.includes('Rate limit') ? 429 : 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status,
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json',
+          ...(retryAfter ? { 'Retry-After': `${retryAfter}` } : {})
+        },
       }
     );
   }

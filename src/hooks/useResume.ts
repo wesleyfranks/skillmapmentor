@@ -24,13 +24,24 @@ export const useResume = (userId: string) => {
         });
 
         if (error) {
+          // Parse the error response
+          let errorData;
+          try {
+            errorData = JSON.parse(error.message);
+          } catch {
+            errorData = { error: error.message };
+          }
+
           // Check if it's a rate limit error
-          if (error.status === 429) {
+          if (error.status === 429 || errorData?.isRateLimit) {
+            const retryAfter = errorData?.retryAfter || 2000;
             toast({
               variant: "destructive",
               title: "Rate limit reached",
-              description: "Please wait a moment before trying again.",
+              description: `Please wait ${Math.ceil(retryAfter / 1000)} seconds before trying again.`,
             });
+            // Schedule a retry after the rate limit period
+            setTimeout(() => debouncedAnalyze(text), retryAfter);
             return;
           }
           throw error;
@@ -51,7 +62,7 @@ export const useResume = (userId: string) => {
       } finally {
         setIsAnalyzing(false);
       }
-    }, 1000), // 1 second delay
+    }, 2000), // Increased to 2 seconds to help prevent rate limits
     []
   );
 
