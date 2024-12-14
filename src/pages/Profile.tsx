@@ -28,6 +28,7 @@ const Profile = () => {
 
     setIsAnalyzing(true);
     try {
+      console.log('Analyzing resume text:', text.substring(0, 100) + '...');
       const { data, error } = await supabase.functions.invoke('analyze-resume', {
         body: { resumeText: text }
       });
@@ -35,9 +36,11 @@ const Profile = () => {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
 
+      console.log('Analysis response:', data);
       const keywordList = data.keywords.split(',').map((k: string) => k.trim());
       setKeywords(keywordList);
     } catch (error: any) {
+      console.error('Error analyzing resume:', error);
       toast({
         variant: "destructive",
         title: "Error analyzing resume",
@@ -136,6 +139,12 @@ const Profile = () => {
     }
   };
 
+  const handleResumeTextChange = (text: string) => {
+    setResumeText(text);
+    // Analyze resume whenever text changes (including PDF uploads)
+    analyzeResume(text);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Card className="max-w-2xl mx-auto p-6">
@@ -152,7 +161,7 @@ const Profile = () => {
                 onEdit={() => setIsEditing(!isEditing)}
                 onSave={handleSaveResume}
                 onDelete={handleDeleteResume}
-                onChange={(text) => setResumeText(text)}
+                onChange={handleResumeTextChange}
                 userId={user.id}
               />
 
