@@ -14,24 +14,27 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Processing PDF upload request...');
     const formData = await req.formData()
     const file = formData.get('file') as File
     const userId = formData.get('userId') as string
 
     if (!file || !userId) {
+      console.error('Missing required fields:', { file: !!file, userId: !!userId });
       return new Response(
         JSON.stringify({ error: 'Missing file or user ID' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
     }
 
-    // Initialize Supabase client
+    console.log('Initializing Supabase client...');
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
     // Upload file to Supabase Storage
+    console.log('Uploading file to storage...');
     const fileBuffer = await file.arrayBuffer()
     const filePath = `${userId}/${crypto.randomUUID()}.pdf`
 
@@ -43,20 +46,24 @@ serve(async (req) => {
       })
 
     if (uploadError) {
-      console.error('Upload error:', uploadError)
-      throw uploadError
+      console.error('Upload error:', uploadError);
+      throw uploadError;
     }
 
     // Extract text from PDF
+    console.log('Extracting text from PDF...');
     const pdfDoc = await PDFDocument.load(fileBuffer)
     const pages = pdfDoc.getPages()
     let extractedText = ''
 
-    for (const page of pages) {
-      const text = await page.doc.getText()
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i]
+      // Get the text content directly from the page
+      const text = await page.getTextContent()
       extractedText += text + '\n'
     }
 
+    console.log('Updating user record...');
     // Update user record with file path and extracted text
     const { error: updateError } = await supabase
       .from('users')
@@ -67,10 +74,11 @@ serve(async (req) => {
       .eq('id', userId)
 
     if (updateError) {
-      console.error('Update error:', updateError)
-      throw updateError
+      console.error('Update error:', updateError);
+      throw updateError;
     }
 
+    console.log('PDF processing completed successfully');
     return new Response(
       JSON.stringify({ 
         message: 'PDF processed successfully',
@@ -80,9 +88,12 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
-    console.error('Error processing PDF:', error)
+    console.error('Error processing PDF:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to process PDF' }),
+      JSON.stringify({ 
+        error: 'Failed to process PDF',
+        details: error.message 
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
