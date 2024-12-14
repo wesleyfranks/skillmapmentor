@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import * as pdfjs from 'pdfjs-dist';
 import { supabase } from '@/integrations/supabase/client';
-import worker from 'pdfjs-dist/build/pdf.worker.min.js?url';
 
-// Initialize PDF.js worker with local worker file
-pdfjs.GlobalWorkerOptions.workerSrc = worker;
+// Initialize PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.js',
+  import.meta.url
+).toString();
 
 export const usePdfHandler = (userId: string, onTextExtracted: (text: string) => void) => {
   const [isUploading, setIsUploading] = useState(false);
