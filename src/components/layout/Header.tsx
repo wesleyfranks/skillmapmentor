@@ -19,12 +19,14 @@ export const Header = () => {
           </h1>
         </div>
         <nav className="flex items-center space-x-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/pricing")}
-          >
-            Pricing
-          </Button>
+          {!user && (
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/pricing")}
+            >
+              Pricing
+            </Button>
+          )}
           {user ? (
             <>
               <Button
