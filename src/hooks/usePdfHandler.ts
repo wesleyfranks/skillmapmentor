@@ -1,34 +1,35 @@
 import { useState } from 'react';
 import * as pdfjs from 'pdfjs-dist';
 import { supabase } from '@/integrations/supabase/client';
+import worker from 'pdfjs-dist/build/pdf.worker.min.js?url';
 
-// Initialize PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
-
-const extractTextFromPDF = async (file: File): Promise<string> => {
-  try {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
-    let fullText = '';
-
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ');
-      fullText += pageText + '\n';
-    }
-
-    return fullText;
-  } catch (error) {
-    console.error('Error extracting text from PDF:', error);
-    throw error;
-  }
-};
+// Initialize PDF.js worker with local worker file
+pdfjs.GlobalWorkerOptions.workerSrc = worker;
 
 export const usePdfHandler = (userId: string, onTextExtracted: (text: string) => void) => {
   const [isUploading, setIsUploading] = useState(false);
+
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+      let fullText = '';
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(' ');
+        fullText += pageText + '\n';
+      }
+
+      return fullText;
+    } catch (error) {
+      console.error('Error extracting text from PDF:', error);
+      throw error;
+    }
+  };
 
   const handleFileUpload = async (file: File) => {
     if (!file || !file.type.includes('pdf')) {
