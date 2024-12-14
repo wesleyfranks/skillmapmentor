@@ -1,13 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as pdfjs from 'pdfjs-dist';
 import { supabase } from '@/integrations/supabase/client';
 
-// Initialize PDF.js worker
-const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.mjs');
-pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker.default;
-
 export const usePdfHandler = (userId: string, onTextExtracted: (text: string) => void) => {
   const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    const initializeWorker = async () => {
+      const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.mjs');
+      pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker.default;
+    };
+    initializeWorker();
+  }, []);
 
   const extractTextFromPDF = async (file: File): Promise<string> => {
     try {
