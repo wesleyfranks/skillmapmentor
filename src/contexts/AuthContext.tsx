@@ -39,100 +39,88 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      if (error) {
-        if (error.message.includes("Email not confirmed")) {
-          toast({
-            variant: "destructive",
-            title: "Email not confirmed",
-            description: "Please check your email for the confirmation link.",
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Error signing in",
-            description: error.message,
-          });
-        }
-        throw error;
-      }
-
-      if (data?.user) {
+    if (error) {
+      const errorMessage = error.message;
+      if (errorMessage.includes("Email not confirmed")) {
         toast({
-          title: "Welcome back!",
-          description: "You have successfully signed in.",
+          variant: "destructive",
+          title: "Email not confirmed",
+          description: "Please check your email for the confirmation link.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error signing in",
+          description: errorMessage,
         });
       }
-    } catch (error: any) {
-      // Error is already handled above
       throw error;
+    }
+
+    if (data?.user) {
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in.",
+      });
     }
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
         },
+      },
+    });
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error signing up",
+        description: error.message,
       });
-
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Error signing up",
-          description: error.message,
-        });
-        throw error;
-      }
-
-      if (data?.user) {
-        if (data.session === null) {
-          toast({
-            title: "Verification email sent",
-            description: "Please check your email to confirm your account.",
-          });
-        } else {
-          toast({
-            title: "Welcome!",
-            description: "Your account has been created successfully.",
-          });
-        }
-      }
-    } catch (error: any) {
-      // Error is already handled above
       throw error;
+    }
+
+    if (data?.user) {
+      if (data.session === null) {
+        toast({
+          title: "Verification email sent",
+          description: "Please check your email to confirm your account.",
+        });
+      } else {
+        toast({
+          title: "Welcome!",
+          description: "Your account has been created successfully.",
+        });
+      }
     }
   };
 
   const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Error signing out",
-          description: error.message,
-        });
-        throw error;
-      }
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
       toast({
-        title: "Signed out",
-        description: "You have been signed out successfully.",
+        variant: "destructive",
+        title: "Error signing out",
+        description: error.message,
       });
-    } catch (error: any) {
-      // Error is already handled above
       throw error;
     }
+    
+    toast({
+      title: "Signed out",
+      description: "You have been signed out successfully.",
+    });
   };
 
   return (
