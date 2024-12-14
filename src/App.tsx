@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Header } from "./components/layout/Header";
+import { Footer } from "./components/layout/Footer";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -16,7 +17,6 @@ const queryClient = new QueryClient();
 const AppRoutes = () => {
   const { user, loading } = useAuth();
   
-  // Don't render routes until auth state is determined
   if (loading) {
     return null;
   }
@@ -38,9 +38,12 @@ const App = () => (
     <TooltipProvider>
       <BrowserRouter>
         <AuthProvider>
-          <div className="min-h-screen bg-background">
+          <div className="min-h-screen bg-background flex flex-col">
             <Header />
-            <AppRoutes />
+            <main className="flex-1">
+              <AppRoutes />
+            </main>
+            <Footer />
           </div>
           <Toaster />
           <Sonner />
