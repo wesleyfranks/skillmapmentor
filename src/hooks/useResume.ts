@@ -11,7 +11,7 @@ export const useResume = (userId: string) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [keywords, setKeywords] = useState<string[]>([]);
 
-  // Debounced analyze function to prevent multiple rapid API calls
+  // Debounced analyze function with increased delay and better error handling
   const debouncedAnalyze = useCallback(
     debounce(async (text: string) => {
       if (!text) return;
@@ -24,7 +24,6 @@ export const useResume = (userId: string) => {
         });
 
         if (error) {
-          // Parse the error response
           let errorData;
           try {
             errorData = JSON.parse(error.message);
@@ -32,16 +31,15 @@ export const useResume = (userId: string) => {
             errorData = { error: error.message };
           }
 
-          // Check if it's a rate limit error
           if (error.status === 429 || errorData?.isRateLimit) {
-            const retryAfter = errorData?.retryAfter || 2000;
+            const retryAfter = errorData?.retryAfter || 3000;
             toast({
               variant: "destructive",
               title: "Rate limit reached",
               description: `Please wait ${Math.ceil(retryAfter / 1000)} seconds before trying again.`,
             });
-            // Schedule a retry after the rate limit period
-            setTimeout(() => debouncedAnalyze(text), retryAfter);
+            // Schedule a retry after the rate limit period plus a small buffer
+            setTimeout(() => debouncedAnalyze(text), retryAfter + 1000);
             return;
           }
           throw error;
@@ -62,7 +60,7 @@ export const useResume = (userId: string) => {
       } finally {
         setIsAnalyzing(false);
       }
-    }, 2000), // Increased to 2 seconds to help prevent rate limits
+    }, 3000), // Increased to 3 seconds to help prevent rate limits
     []
   );
 

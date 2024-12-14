@@ -14,20 +14,25 @@ const extractRetryAfter = (error: any): number => {
   try {
     if (typeof error === 'string') {
       const match = error.match(/Please try again in (\d+)ms/);
-      return match ? parseInt(match[1]) : 2000;
+      if (match) return parseInt(match[1]);
     }
-    return 2000;
+    if (error?.message) {
+      const match = error.message.match(/Please try again in (\d+)ms/);
+      if (match) return parseInt(match[1]);
+    }
+    return 3000; // Default to 3 seconds if no time specified
   } catch {
-    return 2000;
+    return 3000;
   }
 };
 
-const analyzeWithRetry = async (resumeText: string, retries = 3) => {
+const analyzeWithRetry = async (resumeText: string, maxRetries = 3) => {
+  let attempt = 0;
   let lastError;
-  
-  for (let i = 0; i < retries; i++) {
+
+  while (attempt < maxRetries) {
     try {
-      console.log(`Attempt ${i + 1} to analyze resume`);
+      console.log(`Attempt ${attempt + 1} to analyze resume`);
       
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -50,11 +55,11 @@ const analyzeWithRetry = async (resumeText: string, retries = 3) => {
       const data = await response.json();
       
       if (data.error) {
-        // Handle rate limit specifically
         if (data.error.type === 'rate_limit_exceeded' || data.error.message?.includes('Rate limit')) {
-          const retryAfter = extractRetryAfter(data.error.message);
+          const retryAfter = extractRetryAfter(data.error);
           console.log(`Rate limit hit, waiting ${retryAfter}ms before retry`);
-          await sleep(retryAfter);
+          await sleep(retryAfter + 1000); // Add 1 second buffer
+          attempt++;
           continue;
         }
         throw new Error(data.error.message || 'Error from OpenAI API');
@@ -62,25 +67,24 @@ const analyzeWithRetry = async (resumeText: string, retries = 3) => {
 
       return data.choices[0].message.content;
     } catch (error) {
-      console.error(`Error on attempt ${i + 1}:`, error);
+      console.error(`Error on attempt ${attempt + 1}:`, error);
       lastError = error;
       
-      // If it's the last retry, throw the error
-      if (i === retries - 1) {
+      if (attempt === maxRetries - 1) {
         throw error;
       }
 
-      // For non-rate limit errors, use exponential backoff
-      const delay = 2000 * Math.pow(2, i);
+      const delay = 3000 * Math.pow(2, attempt); // Exponential backoff starting at 3 seconds
       console.log(`Waiting ${delay}ms before retry`);
       await sleep(delay);
+      attempt++;
     }
   }
+  
   throw lastError || new Error('Max retries reached');
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -103,10 +107,9 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in analyze-resume function:', error);
     
-    // Check if it's a rate limit error
     const isRateLimit = error.message?.includes('Rate limit');
     const status = isRateLimit ? 429 : 500;
-    const retryAfter = isRateLimit ? extractRetryAfter(error.message) : null;
+    const retryAfter = isRateLimit ? extractRetryAfter(error) : 3000;
     
     return new Response(
       JSON.stringify({ 
@@ -118,7 +121,7 @@ serve(async (req) => {
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json',
-          ...(retryAfter ? { 'Retry-After': `${retryAfter}` } : {})
+          'Retry-After': `${retryAfter}`
         },
       }
     );
