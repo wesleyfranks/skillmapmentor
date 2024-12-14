@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ResumeEditor } from "@/components/profile/ResumeEditor";
 import { KeywordAnalysis } from "@/components/profile/KeywordAnalysis";
+import { Navigate } from "react-router-dom";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -16,6 +17,11 @@ const Profile = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [keywords, setKeywords] = useState<string[]>([]);
+
+  // If there's no user, redirect to login
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   const analyzeResume = async (text: string) => {
     if (!text) return;
