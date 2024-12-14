@@ -34,7 +34,7 @@ export const KeywordAnalysis = ({
         </Button>
       </div>
 
-      {(isAnalyzing || keywords.length > 0) && (
+      {(isAnalyzing || keywords.length > 0) ? (
         <div className="bg-muted/50 rounded-lg p-4 h-[calc(100vh-20rem)] overflow-y-auto">
           {isAnalyzing && (
             <div className="space-y-4">
@@ -60,6 +60,10 @@ export const KeywordAnalysis = ({
               ))}
             </div>
           )}
+        </div>
+      ) : (
+        <div className="bg-muted/50 rounded-lg p-4 text-center text-muted-foreground">
+          <p>No keywords found yet. Click "Re-analyze" to extract keywords from your resume.</p>
         </div>
       )}
     </div>
