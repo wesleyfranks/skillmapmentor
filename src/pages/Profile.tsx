@@ -22,16 +22,11 @@ const Profile = () => {
 
     setIsAnalyzing(true);
     try {
-      const response = await fetch('/functions/v1/analyze-resume', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ resumeText: text }),
+      const { data, error } = await supabase.functions.invoke('analyze-resume', {
+        body: { resumeText: text }
       });
 
-      const data = await response.json();
+      if (error) throw error;
       if (data.error) throw new Error(data.error);
 
       const keywordList = data.keywords.split(',').map((k: string) => k.trim());
