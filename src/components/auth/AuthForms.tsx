@@ -18,7 +18,7 @@ export const LoginForm = () => {
     setLoading(true);
     try {
       await signIn(email, password);
-      navigate("/");
+      navigate("/profile");
     } finally {
       setLoading(false);
     }
