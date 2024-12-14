@@ -17,6 +17,36 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [keywords, setKeywords] = useState<string[]>([]);
 
+  const analyzeResume = async (text: string) => {
+    if (!text) return;
+
+    setIsAnalyzing(true);
+    try {
+      const response = await fetch('/functions/v1/analyze-resume', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ resumeText: text }),
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+
+      const keywordList = data.keywords.split(',').map((k: string) => k.trim());
+      setKeywords(keywordList);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error analyzing resume",
+        description: error.message,
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   useEffect(() => {
     const fetchResumeText = async () => {
       if (!user) return;
@@ -102,36 +132,6 @@ const Profile = () => {
         title: "Error deleting resume",
         description: error.message,
       });
-    }
-  };
-
-  const analyzeResume = async (text: string) => {
-    if (!text) return;
-
-    setIsAnalyzing(true);
-    try {
-      const response = await fetch('/functions/v1/analyze-resume', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ resumeText: text }),
-      });
-
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
-
-      const keywordList = data.keywords.split(',').map((k: string) => k.trim());
-      setKeywords(keywordList);
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error analyzing resume",
-        description: error.message,
-      });
-    } finally {
-      setIsAnalyzing(false);
     }
   };
 
