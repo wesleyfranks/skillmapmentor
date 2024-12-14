@@ -20,7 +20,19 @@ export const useResume = (userId: string) => {
         body: { resumeText: text }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Check if it's a rate limit error
+        if (error.status === 429) {
+          toast({
+            variant: "destructive",
+            title: "Rate limit reached",
+            description: "Please wait a moment before trying again.",
+          });
+          return;
+        }
+        throw error;
+      }
+      
       if (data.error) throw new Error(data.error);
 
       console.log('Analysis response:', data);
