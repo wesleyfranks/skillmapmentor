@@ -1,13 +1,11 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-import { Pencil } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
+import { ProfileHeader } from "@/components/profile/ProfileHeader";
+import { ResumeEditor } from "@/components/profile/ResumeEditor";
+import { KeywordAnalysis } from "@/components/profile/KeywordAnalysis";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -76,6 +74,31 @@ const Profile = () => {
     });
   };
 
+  const handleDeleteResume = async () => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from("users")
+        .update({ resume_text: null })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      setResumeText("");
+      toast({
+        title: "Success",
+        description: "Your resume has been deleted.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error deleting resume",
+        description: error.message,
+      });
+    }
+  };
+
   const analyzeResume = async () => {
     if (!resumeText) return;
 
@@ -111,120 +134,26 @@ const Profile = () => {
       <Card className="max-w-2xl mx-auto p-6">
         <h1 className="text-2xl font-bold mb-6">Profile</h1>
         <div className="space-y-4">
-          {isLoading ? (
+          <ProfileHeader user={user} isLoading={isLoading} />
+          
+          {!isLoading && (
             <>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-6 w-48" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-6 w-48" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-[300px] w-full" />
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Email</label>
-                <p className="mt-1">{user?.email}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Full Name</label>
-                <p className="mt-1">{user?.user_metadata?.full_name || "Not provided"}</p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-sm font-medium text-muted-foreground">Resume Text</label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsEditing(!isEditing)}
-                    className="flex items-center gap-2"
-                  >
-                    <Pencil className="h-4 w-4" />
-                    {isEditing ? "Cancel" : "Edit"}
-                  </Button>
-                </div>
-                
-                {isEditing ? (
-                  <>
-                    <Textarea
-                      placeholder="Paste your resume text here..."
-                      value={resumeText}
-                      onChange={(e) => setResumeText(e.target.value)}
-                      className="min-h-[300px]"
-                    />
-                    <Button 
-                      onClick={handleSaveResume} 
-                      disabled={isSaving}
-                      className="mt-2"
-                    >
-                      {isSaving ? (
-                        <div className="flex items-center gap-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
-                          Saving...
-                        </div>
-                      ) : (
-                        "Save Resume"
-                      )}
-                    </Button>
-                  </>
-                ) : (
-                  <div className="whitespace-pre-wrap bg-muted p-4 rounded-md min-h-[100px]">
-                    {resumeText || "No resume text provided"}
-                  </div>
-                )}
-              </div>
+              <ResumeEditor
+                resumeText={resumeText}
+                isEditing={isEditing}
+                isSaving={isSaving}
+                onEdit={() => setIsEditing(!isEditing)}
+                onSave={handleSaveResume}
+                onDelete={handleDeleteResume}
+                onChange={(text) => setResumeText(text)}
+              />
 
-              {resumeText && !isEditing && (
-                <div className="space-y-4">
-                  <Button
-                    onClick={analyzeResume}
-                    disabled={isAnalyzing}
-                    className="w-full"
-                  >
-                    {isAnalyzing ? (
-                      <div className="flex items-center gap-2">
-                        <Progress value={75} className="w-full" />
-                        Analyzing Resume...
-                      </div>
-                    ) : (
-                      "Analyze Resume"
-                    )}
-                  </Button>
-
-                  {isAnalyzing && (
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-32" />
-                      <div className="flex flex-wrap gap-2">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <Skeleton key={i} className="h-6 w-20" />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {keywords.length > 0 && !isAnalyzing && (
-                    <div className="space-y-2">
-                      <h2 className="text-lg font-semibold">Keywords Found</h2>
-                      <div className="flex flex-wrap gap-2">
-                        {keywords.map((keyword, index) => (
-                          <span
-                            key={index}
-                            className="bg-primary/10 text-primary px-2 py-1 rounded-md text-sm animate-fade-in"
-                          >
-                            {keyword}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+              <KeywordAnalysis
+                resumeText={resumeText}
+                isAnalyzing={isAnalyzing}
+                keywords={keywords}
+                onAnalyze={analyzeResume}
+              />
             </>
           )}
         </div>
