@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 export const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -63,6 +64,7 @@ export const SignUpForm = () => {
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +72,20 @@ export const SignUpForm = () => {
     try {
       await signUp(email, password, fullName);
       navigate("/profile");
+    } catch (error: any) {
+      if (error.message.includes("User already registered")) {
+        toast({
+          variant: "destructive",
+          title: "Email already registered",
+          description: "Please use a different email address or try logging in instead.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error signing up",
+          description: error.message,
+        });
+      }
     } finally {
       setLoading(false);
     }
