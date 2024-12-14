@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { PDFDocument } from 'https://cdn.skypack.dev/pdf-lib'
+import * as pdfjs from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/+esm'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -50,17 +50,28 @@ serve(async (req) => {
       throw uploadError;
     }
 
-    // Extract text from PDF
+    // Extract text from PDF using pdf.js
     console.log('Extracting text from PDF...');
-    const pdfDoc = await PDFDocument.load(fileBuffer)
-    const pages = pdfDoc.getPages()
-    let extractedText = ''
+    
+    // Set up the worker for pdf.js
+    const pdfjsWorker = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.mjs');
+    pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
-    for (let i = 0; i < pages.length; i++) {
-      const page = pages[i]
-      // Get the text content directly from the page
-      const text = await page.getTextContent()
-      extractedText += text + '\n'
+    // Load the PDF document
+    const pdfData = new Uint8Array(fileBuffer);
+    const loadingTask = pdfjs.getDocument({ data: pdfData });
+    const pdfDoc = await loadingTask.promise;
+    
+    let extractedText = '';
+    
+    // Extract text from each page
+    for (let i = 1; i <= pdfDoc.numPages; i++) {
+      const page = await pdfDoc.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      extractedText += pageText + '\n';
     }
 
     console.log('Updating user record...');
