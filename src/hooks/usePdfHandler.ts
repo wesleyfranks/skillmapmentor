@@ -1,88 +1,78 @@
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from 'react';
 import * as pdfjs from 'pdfjs-dist';
-import { useToast } from "@/hooks/use-toast";
+import { supabase } from '@/integrations/supabase/client';
 
-// Configure PDF.js worker
-const workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.js',
-  import.meta.url
-);
-pdfjs.GlobalWorkerOptions.workerSrc = workerSrc.toString();
+// Initialize PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
-export const usePdfHandler = (userId: string, onTextExtracted: (text: string) => void) => {
-  const [isUploading, setIsUploading] = useState(false);
-  const { toast } = useToast();
+const extractTextFromPDF = async (file: File): Promise<string> => {
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
 
-  const extractTextFromPDF = async (arrayBuffer: ArrayBuffer) => {
-    try {
-      const loadingTask = pdfjs.getDocument(arrayBuffer);
-      const pdf = await loadingTask.promise;
-      let extractedText = '';
-
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(' ');
-        extractedText += pageText + '\n';
-      }
-
-      return extractedText;
-    } catch (error) {
-      console.error('Error extracting text from PDF:', error);
-      throw error;
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      fullText += pageText + '\n';
     }
-  };
+
+    return fullText;
+  } catch (error) {
+    console.error('Error extracting text from PDF:', error);
+    throw error;
+  }
+};
+
+const usePdfHandler = (userId: string, onTextExtracted: (text: string) => void) => {
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleFileUpload = async (file: File) => {
     if (!file || !file.type.includes('pdf')) {
-      toast({
-        variant: "destructive",
-        title: "Invalid file",
-        description: "Please upload a PDF file",
-      });
-      return;
+      throw new Error('Please upload a valid PDF file');
     }
 
     setIsUploading(true);
     try {
-      // First, extract text from the PDF locally
-      const arrayBuffer = await file.arrayBuffer();
-      const extractedText = await extractTextFromPDF(arrayBuffer);
+      // Extract text from PDF
+      const text = await extractTextFromPDF(file);
+      
+      // Upload PDF to Supabase Storage
+      const filePath = `${userId}/${crypto.randomUUID()}.pdf`;
+      const { error: uploadError } = await supabase.storage
+        .from('resumes')
+        .upload(filePath, file);
 
-      // Then upload the file to Supabase
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('userId', userId);
+      if (uploadError) throw uploadError;
 
-      const { error } = await supabase.functions.invoke('process-pdf', {
-        body: formData,
-      });
+      // Update user's resume data
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          resume_text: text,
+          resume_file_path: filePath
+        })
+        .eq('id', userId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
-      // Update the text area with extracted text
-      onTextExtracted(extractedText);
-      toast({
-        title: "Success",
-        description: "PDF uploaded and processed successfully",
-      });
-    } catch (error: any) {
+      // Call the callback with extracted text
+      onTextExtracted(text);
+    } catch (error) {
       console.error('PDF upload error:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to process PDF",
-      });
+      throw error;
     } finally {
       setIsUploading(false);
     }
   };
 
   return {
-    isUploading,
     handleFileUpload,
+    isUploading
   };
 };
+
+export default usePdfHandler;
