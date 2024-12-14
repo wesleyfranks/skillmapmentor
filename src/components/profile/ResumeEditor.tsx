@@ -92,7 +92,8 @@ export const ResumeEditor = ({
             placeholder="Paste your resume text here..."
             value={resumeText}
             onChange={(e) => onChange(e.target.value)}
-            className="min-h-[300px]"
+            className="min-h-[300px] font-mono whitespace-pre-wrap"
+            style={{ whiteSpace: 'pre-wrap' }}
           />
           <Button onClick={onSave} disabled={isSaving} className="mt-2">
             {isSaving ? (
@@ -106,7 +107,7 @@ export const ResumeEditor = ({
           </Button>
         </>
       ) : (
-        <div className="whitespace-pre-wrap bg-muted p-4 rounded-md min-h-[100px]">
+        <div className="whitespace-pre-wrap bg-muted p-4 rounded-md min-h-[100px] font-mono">
           {resumeText || "No resume text provided"}
         </div>
       )}
