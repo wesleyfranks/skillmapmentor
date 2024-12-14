@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useKeywordAnalysis } from "./useKeywordAnalysis";
 import { useResumeActions } from "./useResumeActions";
+import { useUserData } from "./useUserData";
 
 export const useResume = (userId: string) => {
   const [resumeText, setResumeText] = useState("");
@@ -29,12 +30,20 @@ export const useResume = (userId: string) => {
     const success = await deleteResume();
     if (success) {
       setResumeText("");
+      setKeywords([]);
     }
   };
 
   const handleResumeTextChange = (text: string) => {
     setResumeText(text);
   };
+
+  // Load initial data
+  useUserData(
+    userId, 
+    handleResumeTextChange,
+    (loadedKeywords) => setKeywords(loadedKeywords)
+  );
 
   return {
     resumeText,
