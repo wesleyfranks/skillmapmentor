@@ -1,149 +1,33 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { Navigate } from "react-router-dom";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ResumeEditor } from "@/components/profile/ResumeEditor";
 import { KeywordAnalysis } from "@/components/profile/KeywordAnalysis";
-import { Navigate } from "react-router-dom";
+import { useResume } from "@/hooks/useResume";
+import { useUserData } from "@/hooks/useUserData";
 
 const Profile = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [resumeText, setResumeText] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [keywords, setKeywords] = useState<string[]>([]);
 
   // If there's no user, redirect to login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  const analyzeResume = async (text: string) => {
-    if (!text) return;
+  const {
+    resumeText,
+    isEditing,
+    isSaving,
+    isAnalyzing,
+    keywords,
+    setIsEditing,
+    handleSaveResume,
+    handleDeleteResume,
+    handleResumeTextChange,
+  } = useResume(user.id);
 
-    setIsAnalyzing(true);
-    try {
-      console.log('Analyzing resume text:', text.substring(0, 100) + '...');
-      const { data, error } = await supabase.functions.invoke('analyze-resume', {
-        body: { resumeText: text }
-      });
-
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
-
-      console.log('Analysis response:', data);
-      const keywordList = data.keywords.split(',').map((k: string) => k.trim());
-      setKeywords(keywordList);
-    } catch (error: any) {
-      console.error('Error analyzing resume:', error);
-      toast({
-        variant: "destructive",
-        title: "Error analyzing resume",
-        description: error.message,
-      });
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  useEffect(() => {
-    const fetchResumeText = async () => {
-      if (!user) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from("users")
-          .select("resume_text")
-          .eq("id", user.id)
-          .single();
-
-        if (error) throw error;
-
-        if (data?.resume_text) {
-          setResumeText(data.resume_text);
-          // Analyze resume when it's loaded initially
-          analyzeResume(data.resume_text);
-        }
-      } catch (error: any) {
-        toast({
-          variant: "destructive",
-          title: "Error fetching resume",
-          description: error.message,
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchResumeText();
-  }, [user, toast]);
-
-  const handleSaveResume = async () => {
-    if (!user) return;
-    
-    setIsSaving(true);
-    const { error } = await supabase
-      .from("users")
-      .update({ resume_text: resumeText })
-      .eq("id", user.id);
-
-    setIsSaving(false);
-    setIsEditing(false);
-
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Error saving resume",
-        description: error.message,
-      });
-      return;
-    }
-
-    toast({
-      title: "Success",
-      description: "Your resume has been saved.",
-    });
-
-    // Analyze resume after saving
-    analyzeResume(resumeText);
-  };
-
-  const handleDeleteResume = async () => {
-    if (!user) return;
-    
-    try {
-      const { error } = await supabase
-        .from("users")
-        .update({ resume_text: null, resume_file_path: null })
-        .eq("id", user.id);
-
-      if (error) throw error;
-
-      setResumeText("");
-      setKeywords([]); // Clear keywords when resume is deleted
-      toast({
-        title: "Success",
-        description: "Your resume has been deleted.",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error deleting resume",
-        description: error.message,
-      });
-    }
-  };
-
-  const handleResumeTextChange = (text: string) => {
-    setResumeText(text);
-    // Analyze resume whenever text changes (including PDF uploads)
-    analyzeResume(text);
-  };
+  const { isLoading } = useUserData(user.id, handleResumeTextChange);
 
   return (
     <div className="container mx-auto px-4 py-8">
