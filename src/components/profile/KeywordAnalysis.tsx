@@ -30,7 +30,7 @@ export const KeywordAnalysis = ({
           className="flex items-center gap-2"
         >
           <RefreshCw className={`h-4 w-4 ${isAnalyzing ? 'animate-spin' : ''}`} />
-          {isAnalyzing ? "Analyzing..." : "Re-analyze"}
+          {isAnalyzing ? "Analyzing..." : "Analyze"}
         </Button>
       </div>
 
@@ -63,7 +63,7 @@ export const KeywordAnalysis = ({
         </div>
       ) : (
         <div className="bg-muted/50 rounded-lg p-4 text-center text-muted-foreground">
-          <p>No keywords found yet. Click "Re-analyze" to extract keywords from your resume.</p>
+          <p>No keywords found yet. Click "Analyze" to extract keywords from your resume.</p>
         </div>
       )}
     </div>
