@@ -158,7 +158,6 @@ const Profile = () => {
                 resumeText={resumeText}
                 isAnalyzing={isAnalyzing}
                 keywords={keywords}
-                onAnalyze={() => analyzeResume(resumeText)}
               />
             </>
           )}
