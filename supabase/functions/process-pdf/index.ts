@@ -32,7 +32,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Upload file to Supabase Storage
+    // Upload file to storage
     console.log('Uploading file to storage...');
     const filePath = `${userId}/${crypto.randomUUID()}.pdf`
 
@@ -46,19 +46,6 @@ serve(async (req) => {
     if (uploadError) {
       console.error('Upload error:', uploadError);
       throw uploadError;
-    }
-
-    // Update user record with file path
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        resume_file_path: filePath,
-      })
-      .eq('id', userId)
-
-    if (updateError) {
-      console.error('Update error:', updateError);
-      throw updateError;
     }
 
     console.log('File processed successfully');

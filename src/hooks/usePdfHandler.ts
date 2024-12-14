@@ -4,27 +4,33 @@ import * as pdfjs from 'pdfjs-dist';
 import { useToast } from "@/hooks/use-toast";
 
 // Configure PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.mjs');
+pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 export const usePdfHandler = (userId: string, onTextExtracted: (text: string) => void) => {
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
   const extractTextFromPDF = async (arrayBuffer: ArrayBuffer) => {
-    const loadingTask = pdfjs.getDocument(arrayBuffer);
-    const pdf = await loadingTask.promise;
-    let extractedText = '';
+    try {
+      const loadingTask = pdfjs.getDocument(arrayBuffer);
+      const pdf = await loadingTask.promise;
+      let extractedText = '';
 
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ');
-      extractedText += pageText + '\n';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(' ');
+        extractedText += pageText + '\n';
+      }
+
+      return extractedText;
+    } catch (error) {
+      console.error('Error extracting text from PDF:', error);
+      throw error;
     }
-
-    return extractedText;
   };
 
   const handleFileUpload = async (file: File) => {
