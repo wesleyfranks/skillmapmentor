@@ -10,7 +10,7 @@ const corsHeaders = {
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-const analyzeWithRetry = async (resumeText: string, retries = 3, initialDelay = 500) => {
+const analyzeWithRetry = async (resumeText: string, retries = 3, initialDelay = 1000) => {
   for (let i = 0; i < retries; i++) {
     try {
       console.log(`Attempt ${i + 1} to analyze resume`);
@@ -49,9 +49,11 @@ const analyzeWithRetry = async (resumeText: string, retries = 3, initialDelay = 
 
       return data.choices[0].message.content;
     } catch (error) {
+      console.error(`Error on attempt ${i + 1}:`, error);
       if (i === retries - 1) throw error;
+      
       const delay = initialDelay * Math.pow(2, i);
-      console.log(`Error on attempt ${i + 1}, waiting ${delay}ms before retry:`, error);
+      console.log(`Waiting ${delay}ms before retry`);
       await sleep(delay);
     }
   }
