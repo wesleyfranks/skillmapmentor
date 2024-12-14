@@ -32,6 +32,8 @@ const Profile = () => {
 
         if (data?.resume_text) {
           setResumeText(data.resume_text);
+          // Analyze resume when it's loaded initially
+          analyzeResume(data.resume_text);
         }
       } catch (error: any) {
         toast({
@@ -72,6 +74,9 @@ const Profile = () => {
       title: "Success",
       description: "Your resume has been saved.",
     });
+
+    // Analyze resume after saving
+    analyzeResume(resumeText);
   };
 
   const handleDeleteResume = async () => {
@@ -86,6 +91,7 @@ const Profile = () => {
       if (error) throw error;
 
       setResumeText("");
+      setKeywords([]); // Clear keywords when resume is deleted
       toast({
         title: "Success",
         description: "Your resume has been deleted.",
@@ -99,8 +105,8 @@ const Profile = () => {
     }
   };
 
-  const analyzeResume = async () => {
-    if (!resumeText) return;
+  const analyzeResume = async (text: string) => {
+    if (!text) return;
 
     setIsAnalyzing(true);
     try {
@@ -110,7 +116,7 @@ const Profile = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({ resumeText }),
+        body: JSON.stringify({ resumeText: text }),
       });
 
       const data = await response.json();
@@ -152,7 +158,7 @@ const Profile = () => {
                 resumeText={resumeText}
                 isAnalyzing={isAnalyzing}
                 keywords={keywords}
-                onAnalyze={analyzeResume}
+                onAnalyze={() => analyzeResume(resumeText)}
               />
             </>
           )}
