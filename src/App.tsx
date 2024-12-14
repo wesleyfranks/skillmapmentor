@@ -14,15 +14,20 @@ import Pricing from "./pages/Pricing";
 const queryClient = new QueryClient();
 
 const AppRoutes = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   
+  // Don't render routes until auth state is determined
+  if (loading) {
+    return null;
+  }
+
   return (
     <Routes>
       <Route path="/" element={user ? <Navigate to="/profile" replace /> : <Index />} />
       <Route path="/pricing" element={<Pricing />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/profile" element={<Profile />} />
+      <Route path="/login" element={user ? <Navigate to="/profile" replace /> : <Login />} />
+      <Route path="/signup" element={user ? <Navigate to="/profile" replace /> : <Signup />} />
+      <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
