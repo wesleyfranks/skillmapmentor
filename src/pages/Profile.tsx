@@ -5,12 +5,16 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { Pencil } from "lucide-react";
 
 const Profile = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [resumeText, setResumeText] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [keywords, setKeywords] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchResumeText = async () => {
@@ -49,6 +53,7 @@ const Profile = () => {
       .eq("id", user.id);
 
     setIsSaving(false);
+    setIsEditing(false);
 
     if (error) {
       toast({
@@ -65,6 +70,37 @@ const Profile = () => {
     });
   };
 
+  const analyzeResume = async () => {
+    if (!resumeText) return;
+
+    setIsAnalyzing(true);
+    try {
+      const response = await fetch('/functions/v1/analyze-resume', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ resumeText }),
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+
+      // Split the comma-separated list into an array and trim whitespace
+      const keywordList = data.keywords.split(',').map((k: string) => k.trim());
+      setKeywords(keywordList);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error analyzing resume",
+        description: error.message,
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Card className="max-w-2xl mx-auto p-6">
@@ -79,21 +115,69 @@ const Profile = () => {
             <p className="mt-1">{user?.user_metadata?.full_name || "Not provided"}</p>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground">Resume Text</label>
-            <Textarea
-              placeholder="Paste your resume text here..."
-              value={resumeText}
-              onChange={(e) => setResumeText(e.target.value)}
-              className="min-h-[300px]"
-            />
-            <Button 
-              onClick={handleSaveResume} 
-              disabled={isSaving}
-              className="mt-2"
-            >
-              {isSaving ? "Saving..." : "Save Resume"}
-            </Button>
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-medium text-muted-foreground">Resume Text</label>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsEditing(!isEditing)}
+                className="flex items-center gap-2"
+              >
+                <Pencil className="h-4 w-4" />
+                {isEditing ? "Cancel" : "Edit"}
+              </Button>
+            </div>
+            
+            {isEditing ? (
+              <>
+                <Textarea
+                  placeholder="Paste your resume text here..."
+                  value={resumeText}
+                  onChange={(e) => setResumeText(e.target.value)}
+                  className="min-h-[300px]"
+                />
+                <Button 
+                  onClick={handleSaveResume} 
+                  disabled={isSaving}
+                  className="mt-2"
+                >
+                  {isSaving ? "Saving..." : "Save Resume"}
+                </Button>
+              </>
+            ) : (
+              <div className="whitespace-pre-wrap bg-muted p-4 rounded-md min-h-[100px]">
+                {resumeText || "No resume text provided"}
+              </div>
+            )}
           </div>
+
+          {resumeText && !isEditing && (
+            <div className="space-y-4">
+              <Button
+                onClick={analyzeResume}
+                disabled={isAnalyzing}
+                className="w-full"
+              >
+                {isAnalyzing ? "Analyzing Resume..." : "Analyze Resume"}
+              </Button>
+
+              {keywords.length > 0 && (
+                <div className="space-y-2">
+                  <h2 className="text-lg font-semibold">Keywords Found</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {keywords.map((keyword, index) => (
+                      <span
+                        key={index}
+                        className="bg-primary/10 text-primary px-2 py-1 rounded-md text-sm"
+                      >
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </Card>
     </div>
