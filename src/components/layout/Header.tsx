@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { UserCircle } from "lucide-react";
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -26,6 +27,14 @@ export const Header = () => {
           </Button>
           {user ? (
             <>
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/profile")}
+                className="flex items-center gap-2"
+              >
+                <UserCircle className="h-5 w-5" />
+                Profile
+              </Button>
               <Button
                 variant="ghost"
                 onClick={() => signOut()}

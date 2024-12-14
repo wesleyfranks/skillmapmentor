@@ -69,7 +69,7 @@ export const SignUpForm = () => {
     setLoading(true);
     try {
       await signUp(email, password, fullName);
-      navigate("/");
+      navigate("/profile");
     } finally {
       setLoading(false);
     }
