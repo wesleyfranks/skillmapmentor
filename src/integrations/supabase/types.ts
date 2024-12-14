@@ -42,6 +42,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          resume_file_path: string | null
           resume_text: string | null
           updated_at: string
         }
@@ -50,6 +51,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          resume_file_path?: string | null
           resume_text?: string | null
           updated_at?: string
         }
@@ -58,6 +60,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          resume_file_path?: string | null
           resume_text?: string | null
           updated_at?: string
         }

@@ -116,7 +116,7 @@ const Profile = () => {
     try {
       const { error } = await supabase
         .from("users")
-        .update({ resume_text: null })
+        .update({ resume_text: null, resume_file_path: null })
         .eq("id", user.id);
 
       if (error) throw error;
@@ -153,6 +153,7 @@ const Profile = () => {
                 onSave={handleSaveResume}
                 onDelete={handleDeleteResume}
                 onChange={(text) => setResumeText(text)}
+                userId={user.id}
               />
 
               <KeywordAnalysis

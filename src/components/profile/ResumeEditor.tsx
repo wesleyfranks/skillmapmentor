@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Upload } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,6 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface ResumeEditorProps {
   resumeText: string;
@@ -22,6 +24,7 @@ interface ResumeEditorProps {
   onSave: () => void;
   onDelete: () => void;
   onChange: (text: string) => void;
+  userId: string;
 }
 
 export const ResumeEditor = ({
@@ -32,8 +35,50 @@ export const ResumeEditor = ({
   onSave,
   onDelete,
   onChange,
+  userId,
 }: ResumeEditorProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !file.type.includes('pdf')) {
+      toast({
+        variant: "destructive",
+        title: "Invalid file",
+        description: "Please upload a PDF file",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('userId', userId);
+
+      const { data, error } = await supabase.functions.invoke('process-pdf', {
+        body: formData,
+      });
+
+      if (error) throw error;
+
+      onChange(data.extractedText);
+      toast({
+        title: "Success",
+        description: "PDF uploaded and processed successfully",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to process PDF",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   return (
     <div className="space-y-2">
@@ -84,6 +129,26 @@ export const ResumeEditor = ({
             </AlertDialog>
           )}
         </div>
+      </div>
+
+      <div className="flex justify-end mb-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-2"
+          disabled={isUploading}
+          onClick={() => document.getElementById('pdf-upload')?.click()}
+        >
+          <Upload className="h-4 w-4" />
+          {isUploading ? "Uploading..." : "Upload PDF"}
+        </Button>
+        <input
+          type="file"
+          id="pdf-upload"
+          accept=".pdf"
+          className="hidden"
+          onChange={handleFileUpload}
+        />
       </div>
 
       {isEditing ? (
