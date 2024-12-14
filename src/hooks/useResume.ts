@@ -10,57 +10,78 @@ export const useResume = (userId: string) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [keywords, setKeywords] = useState<string[]>([]);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
-  // Debounced analyze function with increased delay and better error handling
-  const debouncedAnalyze = useCallback(
-    debounce(async (text: string) => {
-      if (!text) return;
+  // Enhanced analyze function with retry logic
+  const analyzeResume = async (text: string) => {
+    if (!text) return;
+    
+    try {
+      console.log('Analyzing resume text:', text.substring(0, 100) + '...');
+      const { data, error } = await supabase.functions.invoke('analyze-resume', {
+        body: { resumeText: text }
+      });
 
-      setIsAnalyzing(true);
-      try {
-        console.log('Analyzing resume text:', text.substring(0, 100) + '...');
-        const { data, error } = await supabase.functions.invoke('analyze-resume', {
-          body: { resumeText: text }
-        });
-
-        if (error) {
-          let errorData;
-          try {
+      if (error) {
+        // Parse error message for rate limit info
+        let errorData;
+        try {
+          if (typeof error.message === 'string' && error.message.includes('{')) {
             errorData = JSON.parse(error.message);
-          } catch {
+          } else {
             errorData = { error: error.message };
           }
-
-          if (error.status === 429 || errorData?.isRateLimit) {
-            const retryAfter = errorData?.retryAfter || 3000;
-            toast({
-              variant: "destructive",
-              title: "Rate limit reached",
-              description: `Please wait ${Math.ceil(retryAfter / 1000)} seconds before trying again.`,
-            });
-            // Schedule a retry after the rate limit period plus a small buffer
-            setTimeout(() => debouncedAnalyze(text), retryAfter + 1000);
-            return;
-          }
-          throw error;
+        } catch {
+          errorData = { error: error.message };
         }
-        
-        if (data.error) throw new Error(data.error);
 
-        console.log('Analysis response:', data);
-        const keywordList = data.keywords.split(',').map((k: string) => k.trim());
-        setKeywords(keywordList);
-      } catch (error: any) {
-        console.error('Error analyzing resume:', error);
-        toast({
-          variant: "destructive",
-          title: "Error analyzing resume",
-          description: error.message,
-        });
-      } finally {
-        setIsAnalyzing(false);
+        // Handle rate limit specifically
+        if (error.status === 429 || errorData?.error?.includes('Rate limit')) {
+          const retryAfterMatch = errorData?.error?.match(/try again in (\d+)ms/);
+          const retryAfter = retryAfterMatch ? parseInt(retryAfterMatch[1]) : 3000;
+          
+          if (retryCount < MAX_RETRIES) {
+            setRetryCount(prev => prev + 1);
+            toast({
+              title: "Rate limit reached",
+              description: `Retrying analysis in ${Math.ceil(retryAfter / 1000)} seconds...`,
+            });
+            
+            // Wait for rate limit + buffer and retry
+            await new Promise(resolve => setTimeout(resolve, retryAfter + 1000));
+            return analyzeResume(text);
+          } else {
+            throw new Error("Maximum retry attempts reached. Please try again later.");
+          }
+        }
+        throw error;
       }
-    }, 3000), // Increased to 3 seconds to help prevent rate limits
+
+      if (data.error) throw new Error(data.error);
+
+      console.log('Analysis response:', data);
+      const keywordList = data.keywords.split(',').map((k: string) => k.trim());
+      setKeywords(keywordList);
+      setRetryCount(0); // Reset retry count on success
+    } catch (error: any) {
+      console.error('Error analyzing resume:', error);
+      toast({
+        variant: "destructive",
+        title: "Error analyzing resume",
+        description: error.message,
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Debounced analyze with increased delay
+  const debouncedAnalyze = useCallback(
+    debounce(async (text: string) => {
+      setIsAnalyzing(true);
+      await analyzeResume(text);
+    }, 5000), // Increased to 5 seconds to help prevent rate limits
     []
   );
 
@@ -80,6 +101,7 @@ export const useResume = (userId: string) => {
         description: "Your resume has been saved.",
       });
 
+      // Only analyze if save was successful
       debouncedAnalyze(resumeText);
     } catch (error: any) {
       toast({
@@ -118,6 +140,7 @@ export const useResume = (userId: string) => {
 
   const handleResumeTextChange = (text: string) => {
     setResumeText(text);
+    setRetryCount(0); // Reset retry count when text changes
     debouncedAnalyze(text);
   };
 
