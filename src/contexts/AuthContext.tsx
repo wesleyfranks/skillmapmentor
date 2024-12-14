@@ -45,20 +45,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (error) {
-      const errorMessage = error.message;
-      if (errorMessage.includes("Email not confirmed")) {
-        toast({
-          variant: "destructive",
-          title: "Email not confirmed",
-          description: "Please check your email for the confirmation link.",
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Error signing in",
-          description: errorMessage,
-        });
-      }
+      toast({
+        variant: "destructive",
+        title: "Error signing in",
+        description: error.message,
+      });
       throw error;
     }
 
@@ -91,17 +82,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (data?.user) {
-      if (data.session === null) {
-        toast({
-          title: "Verification email sent",
-          description: "Please check your email to confirm your account.",
-        });
-      } else {
-        toast({
-          title: "Welcome!",
-          description: "Your account has been created successfully.",
-        });
-      }
+      toast({
+        title: "Welcome!",
+        description: "Your account has been created successfully.",
+      });
     }
   };
 
