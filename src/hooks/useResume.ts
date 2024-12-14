@@ -140,15 +140,15 @@ export const useResume = (userId: string) => {
         .from("users")
         .update({ 
           resume_text: null, 
-          resume_file_path: null,
-          keywords: [] 
+          resume_file_path: null
+          // Removed keywords: [] to preserve keywords when deleting resume
         })
         .eq("id", userId);
 
       if (error) throw error;
 
       setResumeText("");
-      setKeywords([]);
+      // Don't clear keywords here
       toast({
         title: "Success",
         description: "Your resume has been deleted.",
