@@ -20,5 +20,11 @@ export const supabase = createClient<Database>(
       storage: window.localStorage,
       storageKey: 'supabase.auth.token',
     },
+    global: {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    },
   }
 );
