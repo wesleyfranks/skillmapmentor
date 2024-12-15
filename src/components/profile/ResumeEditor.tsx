@@ -72,7 +72,7 @@ export const ResumeEditor = ({
           <Button
             variant="default"
             size="sm"
-            className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 col-span-2 mt-2"
+            className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 col-span-2"
             disabled={isUploading}
             onClick={() => document.getElementById('pdf-upload')?.click()}
           >
