@@ -27,41 +27,11 @@ export const useUserData = (
           timestamp: new Date().toISOString()
         });
         
-        // First, ensure the user exists in the users table
-        const { data: existingUser, error: checkError } = await supabase
-          .from("users")
-          .select("id")
-          .eq("id", userId)
-          .maybeSingle();
-
-        if (checkError) {
-          console.error('Error checking user existence:', {
-            error: checkError,
-            userId,
-            attempt: attempt + 1
-          });
-          throw checkError;
-        }
-
-        // If user doesn't exist, wait for trigger
-        if (!existingUser) {
-          console.log('User record not found, waiting for trigger...', {
-            userId,
-            attempt: attempt + 1
-          });
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-
-        // Now fetch the user data
-        console.log('Fetching full user data...', {
-          userId,
-          attempt: attempt + 1
-        });
-        
+        // Using the Supabase client to fetch user data
         const { data, error } = await supabase
-          .from("users")
-          .select("resume_text, keywords, non_keywords")
-          .eq("id", userId)
+          .from('users')
+          .select('resume_text, keywords, non_keywords')
+          .eq('id', userId)
           .single();
 
         if (error) {
