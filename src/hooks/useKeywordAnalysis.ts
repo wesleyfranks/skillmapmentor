@@ -78,9 +78,12 @@ export const useKeywordAnalysis = (userId: string) => {
       console.log('Analysis response:', data);
       
       // Remove duplicates and sort alphabetically
-      const keywordList = Array.from(new Set(data.keywords.split(',').map((k: string) => k.trim())))
+      const keywordList = Array.from(new Set(
+        (data.keywords as string).split(',')
+          .map((k: string) => k.trim())
+      ))
         .filter(Boolean)
-        .sort();
+        .sort() as string[];
       
       setKeywords(keywordList);
       
