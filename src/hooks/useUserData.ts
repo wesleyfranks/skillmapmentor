@@ -26,7 +26,15 @@ export const useUserData = (
           userId,
           timestamp: new Date().toISOString()
         });
+
+        // Get the current session to ensure we have valid auth
+        const { data: { session } } = await supabase.auth.getSession();
         
+        if (!session) {
+          console.error('No active session found');
+          throw new Error('No active session');
+        }
+
         // Using the Supabase client to fetch user data
         const { data, error } = await supabase
           .from('users')
