@@ -11,6 +11,7 @@ export const useUserData = (
   const [retryCount, setRetryCount] = useState(0);
   const MAX_RETRIES = 3;
   const RETRY_DELAY = 1000;
+  const [hasShownError, setHasShownError] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async (attempt = 0) => {
@@ -68,6 +69,7 @@ export const useUserData = (
         }
         
         setRetryCount(0);
+        setHasShownError(false);
         setIsLoading(false);
       } catch (error: any) {
         console.error('Detailed error in fetchUserData:', {
@@ -93,14 +95,17 @@ export const useUserData = (
           }, RETRY_DELAY * Math.pow(2, attempt));
         } else {
           console.error('Max retries reached, stopping attempts');
-          toast.error("Could not load your data. Please try refreshing the page.");
+          if (!hasShownError) {
+            toast.error("Could not load your data. Please try refreshing the page.");
+            setHasShownError(true);
+          }
           setIsLoading(false);
         }
       }
     };
 
     fetchUserData();
-  }, [userId, onResumeLoad, onKeywordsLoad]);
+  }, [userId, onResumeLoad, onKeywordsLoad, hasShownError]);
 
   return { isLoading };
 };
