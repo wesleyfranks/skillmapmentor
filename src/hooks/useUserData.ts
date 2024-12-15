@@ -22,27 +22,47 @@ export const useUserData = (
       try {
         console.log('Fetching user data for ID:', userId);
         
+        // First, ensure the user exists in the users table
+        const { data: existingUser, error: checkError } = await supabase
+          .from("users")
+          .select("id")
+          .eq("id", userId)
+          .maybeSingle();
+
+        if (checkError) {
+          console.error('Error checking user existence:', checkError);
+          throw checkError;
+        }
+
+        // If user doesn't exist, the trigger will create it
+        if (!existingUser) {
+          console.log('User record not found, waiting for trigger to create it...');
+          // Add a small delay to allow the trigger to complete
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        // Now fetch the user data
         const { data, error } = await supabase
           .from("users")
           .select("resume_text, keywords, non_keywords")
           .eq("id", userId)
-          .maybeSingle();
+          .single();
 
         if (error) {
           console.error('Supabase error:', error);
           throw error;
         }
 
-        if (data) {
-          console.log('Received data:', data);
-          
-          if (data.resume_text) {
-            onResumeLoad(data.resume_text);
-          }
-          
-          if (onKeywordsLoad) {
-            onKeywordsLoad(data.keywords || [], data.non_keywords || []);
-          }
+        console.log('Received data:', data);
+        
+        if (data?.resume_text) {
+          onResumeLoad(data.resume_text);
+        }
+        
+        if (onKeywordsLoad) {
+          console.log('Setting initial keywords:', data?.keywords);
+          console.log('Setting initial non-keywords:', data?.non_keywords);
+          onKeywordsLoad(data?.keywords || [], data?.non_keywords || []);
         }
         
         setRetryCount(0);
