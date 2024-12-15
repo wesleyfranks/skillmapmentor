@@ -2,7 +2,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { RefreshCw, X, Pencil, Trash2 } from "lucide-react";
+import { RefreshCw, X, Pencil, Trash2, Filter } from "lucide-react";
 import { useState, useEffect } from "react";
 
 interface KeywordAnalysisProps {
@@ -70,6 +70,25 @@ export const KeywordAnalysis = ({
     }
   };
 
+  const handleRemoveDuplicates = () => {
+    if (onUpdateKeywords) {
+      // Convert to lowercase for case-insensitive comparison, remove duplicates, and maintain original case
+      const seen = new Set<string>();
+      const uniqueKeywords = keywords.filter(keyword => {
+        const lowercase = keyword.toLowerCase();
+        if (seen.has(lowercase)) {
+          return false;
+        }
+        seen.add(lowercase);
+        return true;
+      });
+      
+      if (uniqueKeywords.length !== keywords.length) {
+        onUpdateKeywords(uniqueKeywords);
+      }
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSaveKeyword();
@@ -84,15 +103,26 @@ export const KeywordAnalysis = ({
         <h2 className="text-lg font-semibold">Keywords Found</h2>
         <div className="flex gap-2">
           {keywords.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onDeleteKeywords}
-              className="flex items-center gap-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              Clear All
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRemoveDuplicates}
+                className="flex items-center gap-2"
+              >
+                <Filter className="h-4 w-4" />
+                Remove Duplicates
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onDeleteKeywords}
+                className="flex items-center gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Clear All
+              </Button>
+            </>
           )}
           <Button
             variant="outline"
