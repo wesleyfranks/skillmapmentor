@@ -25,7 +25,7 @@ export const useUserData = (
         // First try to get the user data
         let { data, error } = await supabase
           .from("users")
-          .select("resume_text, keywords, non_keywords")
+          .select("resume_text, keywords, non_keywords, email")
           .eq("id", userId)
           .single();
 
@@ -33,9 +33,25 @@ export const useUserData = (
         if (error?.message?.includes('JSON object requested, multiple (or no) rows returned')) {
           console.log('No user found, creating new user record');
           
+          // First get the user's email from auth
+          const { data: authUser, error: authError } = await supabase.auth.getUser(userId);
+          
+          if (authError) {
+            console.error('Error getting auth user:', authError);
+            throw authError;
+          }
+
+          if (!authUser?.user?.email) {
+            throw new Error('No email found for user');
+          }
+
           const { data: userData, error: userError } = await supabase
             .from("users")
-            .insert([{ id: userId }])
+            .insert({
+              id: userId,
+              email: authUser.user.email,
+              full_name: authUser.user.user_metadata?.full_name
+            })
             .select()
             .single();
 
@@ -62,7 +78,7 @@ export const useUserData = (
           onKeywordsLoad(data?.keywords || [], data?.non_keywords || []);
         }
         
-        setRetryCount(0); // Reset on success
+        setRetryCount(0);
         setIsLoading(false);
       } catch (error: any) {
         console.error('Error fetching user data:', {
@@ -76,7 +92,7 @@ export const useUserData = (
           setRetryCount(attempt + 1);
           setTimeout(() => {
             fetchUserData(attempt + 1);
-          }, RETRY_DELAY * Math.pow(2, attempt)); // Exponential backoff
+          }, RETRY_DELAY * Math.pow(2, attempt));
         } else {
           toast.error("Could not load your data. Please try refreshing the page.");
           setIsLoading(false);
