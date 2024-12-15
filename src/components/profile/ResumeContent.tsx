@@ -26,6 +26,38 @@ export const ResumeContent = ({
     }
   }, [resumeText]);
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    e.preventDefault();
+    
+    // Get the clipboard data
+    const text = e.clipboardData.getData('text/plain');
+    
+    // Get cursor position
+    const startPos = e.currentTarget.selectionStart;
+    const endPos = e.currentTarget.selectionEnd;
+    
+    // Get current value
+    const currentValue = e.currentTarget.value;
+    
+    // Create new value with pasted text
+    const newValue = 
+      currentValue.substring(0, startPos) + 
+      text +
+      currentValue.substring(endPos);
+    
+    // Update the textarea value while preserving formatting
+    onChange(newValue);
+    
+    // Set cursor position after pasted text
+    setTimeout(() => {
+      if (textareaRef.current) {
+        const newPosition = startPos + text.length;
+        textareaRef.current.selectionStart = newPosition;
+        textareaRef.current.selectionEnd = newPosition;
+      }
+    }, 0);
+  };
+
   if (!resumeText && !isEditing) {
     return (
       <div className="flex flex-col items-center justify-center space-y-4 h-[300px] border border-dashed border-gray-300 rounded-lg bg-gray-50">
@@ -38,13 +70,14 @@ export const ResumeContent = ({
   if (isEditing) {
     return (
       <>
-        <pre>
+        <pre className="w-full">
           <textarea
             ref={textareaRef}
             placeholder="Paste your resume text here..."
             value={resumeText}
             onChange={(e) => onChange(e.target.value)}
-            className={`w-full font-mono whitespace-pre-wrap rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+            onPaste={handlePaste}
+            className={`w-full font-mono whitespace-pre rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
               resumeText ? 'min-h-[11in]' : 'min-h-[300px]'
             }`}
             style={{ 
@@ -56,7 +89,7 @@ export const ResumeContent = ({
               border: "1px solid #e2e8f0",
               backgroundColor: "white",
               boxShadow: resumeText ? "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)" : "none",
-              whiteSpace: "pre-wrap",
+              whiteSpace: "pre",
               wordWrap: "break-word",
               overflowWrap: "break-word",
               fontFamily: "monospace",
@@ -80,7 +113,7 @@ export const ResumeContent = ({
 
   return (
     <pre 
-      className="whitespace-pre-wrap bg-white rounded-md font-mono mx-auto"
+      className="whitespace-pre bg-white rounded-md font-mono mx-auto"
       style={{ 
         padding: "0.25in",
         width: "8.5in",
@@ -89,7 +122,7 @@ export const ResumeContent = ({
         tabSize: "4",
         border: "1px solid #e2e8f0",
         boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
-        whiteSpace: "pre-wrap",
+        whiteSpace: "pre",
         wordWrap: "break-word",
         overflowWrap: "break-word",
         fontFamily: "monospace"
