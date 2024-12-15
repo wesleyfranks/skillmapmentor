@@ -21,15 +21,14 @@ export const useUserData = (userId: string, onResumeLoad: (text: string) => void
         
         // First check if we're authenticated
         const { data: { session }, error: authError } = await supabase.auth.getSession();
-        if (authError || !session) {
+        if (authError) {
           console.error('Authentication error:', authError);
-          toast({
-            variant: "destructive",
-            title: "Authentication error",
-            description: "Please try logging in again."
-          });
-          setIsLoading(false);
-          return;
+          throw new Error('Authentication error: ' + authError.message);
+        }
+
+        if (!session) {
+          console.error('No active session');
+          throw new Error('No active session');
         }
 
         const { data, error } = await supabase
@@ -62,13 +61,7 @@ export const useUserData = (userId: string, onResumeLoad: (text: string) => void
           retryCount: attempt
         });
         
-        // Retry logic for network errors
-        if (attempt < MAX_RETRIES && (
-          error.message === "Failed to fetch" || 
-          error.code === "NETWORK_ERROR" ||
-          error.message?.includes('FetchError') ||
-          error.message?.includes('NetworkError')
-        )) {
+        if (attempt < MAX_RETRIES) {
           setRetryCount(attempt + 1);
           toast({
             title: "Connection issue",
@@ -83,7 +76,7 @@ export const useUserData = (userId: string, onResumeLoad: (text: string) => void
           toast({
             variant: "destructive",
             title: "Error",
-            description: "Could not load your data. Please check your connection and refresh the page."
+            description: "Could not load your data. Please try logging in again."
           });
         }
       } finally {
