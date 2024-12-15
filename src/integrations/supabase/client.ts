@@ -31,7 +31,6 @@ export const supabase = createClient<Database>(
   }
 );
 
-// Add a session check helper
 export const validateSession = async () => {
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
