@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RefreshCw, X, Pencil, Trash2, Filter } from "lucide-react";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 interface KeywordAnalysisProps {
   resumeText: string;
@@ -84,7 +85,11 @@ export const KeywordAnalysis = ({
       });
       
       if (uniqueKeywords.length !== keywords.length) {
+        const removedCount = keywords.length - uniqueKeywords.length;
         onUpdateKeywords(uniqueKeywords);
+        toast.success(`Removed ${removedCount} duplicate keyword${removedCount === 1 ? '' : 's'}`);
+      } else {
+        toast.info('No duplicate keywords found');
       }
     }
   };
