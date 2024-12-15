@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, validateSession } from "@/integrations/supabase/client";
 
 export const useUserData = (
   userId: string, 
@@ -28,12 +28,12 @@ export const useUserData = (
           timestamp: new Date().toISOString()
         });
 
-        // Get the current session to ensure we have valid auth
-        const { data: { session } } = await supabase.auth.getSession();
+        // Validate session before making the request
+        const isSessionValid = await validateSession();
         
-        if (!session) {
-          console.error('No active session found');
-          throw new Error('No active session');
+        if (!isSessionValid) {
+          console.error('No valid session found');
+          throw new Error('No valid session');
         }
 
         // Using the Supabase client to fetch user data
