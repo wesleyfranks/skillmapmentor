@@ -41,21 +41,9 @@ const Profile = () => {
             <ProfileHeader user={user} isLoading={isLoading} />
             
             {!isLoading && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Keywords Column - Will appear first on mobile */}
-                <div className="space-y-4 order-first lg:order-last">
-                  <KeywordAnalysis
-                    resumeText={resumeText}
-                    isAnalyzing={isAnalyzing}
-                    keywords={keywords}
-                    onReanalyze={handleReanalyze}
-                    onDeleteKeywords={handleDeleteKeywords}
-                    onUpdateKeywords={handleUpdateKeywords}
-                  />
-                </div>
-
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Resume Column */}
-                <div className="space-y-4 order-last lg:order-first">
+                <div className="lg:order-first order-last space-y-6">
                   <ResumeEditor
                     resumeText={resumeText}
                     isEditing={isEditing}
@@ -65,6 +53,18 @@ const Profile = () => {
                     onDelete={handleDeleteResume}
                     onChange={handleResumeTextChange}
                     userId={user.id}
+                  />
+                </div>
+
+                {/* Keywords Column */}
+                <div className="lg:order-last order-first space-y-6">
+                  <KeywordAnalysis
+                    resumeText={resumeText}
+                    isAnalyzing={isAnalyzing}
+                    keywords={keywords}
+                    onReanalyze={handleReanalyze}
+                    onDeleteKeywords={handleDeleteKeywords}
+                    onUpdateKeywords={handleUpdateKeywords}
                   />
                 </div>
               </div>
