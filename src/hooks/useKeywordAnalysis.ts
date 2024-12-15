@@ -16,6 +16,24 @@ export const useKeywordAnalysis = (userId: string) => {
       console.log('Analyzing resume text:', text.substring(0, 100) + '...');
       console.log('Existing keywords:', existingKeywords);
       
+      // Check if we already have keywords for this exact text
+      const textHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
+        .then(hash => Array.from(new Uint8Array(hash))
+          .map(b => b.toString(16).padStart(2, '0'))
+          .join(''));
+      
+      const { data: userData } = await supabase
+        .from("users")
+        .select("resume_text")
+        .eq("id", userId)
+        .single();
+      
+      // If the resume text is the same as what's stored, don't reanalyze
+      if (userData?.resume_text === text && existingKeywords.length > 0) {
+        console.log('Resume text unchanged, skipping analysis');
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('analyze-resume', {
         body: { 
           resumeText: text,
@@ -58,7 +76,12 @@ export const useKeywordAnalysis = (userId: string) => {
       if (data.error) throw new Error(data.error);
 
       console.log('Analysis response:', data);
-      const keywordList = data.keywords.split(',').map((k: string) => k.trim());
+      
+      // Remove duplicates and sort alphabetically
+      const keywordList = Array.from(new Set(data.keywords.split(',').map((k: string) => k.trim())))
+        .filter(Boolean)
+        .sort();
+      
       setKeywords(keywordList);
       
       // Update keywords in database
@@ -70,10 +93,14 @@ export const useKeywordAnalysis = (userId: string) => {
       if (updateError) throw updateError;
 
       setRetryCount(0);
-      toast({
-        title: "Success",
-        description: "Keywords have been updated.",
-      });
+      
+      // Only show toast if new keywords were added
+      if (keywordList.length > existingKeywords.length) {
+        toast({
+          title: "Success",
+          description: "New keywords have been added.",
+        });
+      }
     } catch (error: any) {
       console.error('Error analyzing resume:', error);
       toast({
