@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 export const useUserData = (userId: string, onResumeLoad: (text: string) => void, onKeywordsLoad?: (keywords: string[]) => void) => {
@@ -53,7 +53,11 @@ export const useUserData = (userId: string, onResumeLoad: (text: string) => void
         const { data: { session }, error: authError } = await supabase.auth.getSession();
         if (authError || !session) {
           console.error('Authentication error:', authError);
-          toast.error("Authentication error. Please try logging in again.");
+          toast({
+            variant: "destructive",
+            title: "Authentication error",
+            description: "Please try logging in again."
+          });
           return;
         }
         
@@ -64,16 +68,21 @@ export const useUserData = (userId: string, onResumeLoad: (text: string) => void
           error.message?.includes('FetchError')
         )) {
           setRetryCount(attempt + 1);
-          toast.info(
-            `Network error, retrying... (${attempt + 1}/${MAX_RETRIES})`, 
-            { duration: RETRY_DELAY }
-          );
+          toast({
+            title: "Network error",
+            description: `Retrying... (${attempt + 1}/${MAX_RETRIES})`,
+            duration: RETRY_DELAY
+          });
           
           setTimeout(() => {
             fetchUserData(attempt + 1);
           }, RETRY_DELAY * Math.pow(2, attempt)); // Exponential backoff
         } else {
-          toast.error("Error fetching user data. Please refresh the page.");
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Error fetching user data. Please refresh the page."
+          });
         }
       } finally {
         if (attempt === 0) { // Only set loading to false after initial attempt
@@ -83,7 +92,7 @@ export const useUserData = (userId: string, onResumeLoad: (text: string) => void
     };
 
     fetchUserData();
-  }, [userId, onResumeLoad, onKeywordsLoad]);
+  }, [userId, toast, onResumeLoad, onKeywordsLoad]);
 
   return { isLoading };
 };
