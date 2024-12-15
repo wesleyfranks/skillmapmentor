@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export const useUserData = (
@@ -7,7 +7,6 @@ export const useUserData = (
   onResumeLoad: (text: string) => void, 
   onKeywordsLoad?: (keywords: string[], nonKeywords: string[]) => void
 ) => {
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const MAX_RETRIES = 3;
@@ -23,18 +22,6 @@ export const useUserData = (
       try {
         console.log('Fetching user data for ID:', userId);
         
-        // First check if we're authenticated
-        const { data: { session }, error: authError } = await supabase.auth.getSession();
-        if (authError) {
-          console.error('Authentication error:', authError);
-          throw new Error('Authentication error: ' + authError.message);
-        }
-
-        if (!session) {
-          console.error('No active session');
-          throw new Error('No active session');
-        }
-
         const { data, error } = await supabase
           .from("users")
           .select("resume_text, keywords, non_keywords")
@@ -59,6 +46,7 @@ export const useUserData = (
         }
         
         setRetryCount(0); // Reset on success
+        setIsLoading(false);
       } catch (error: any) {
         console.error('Error fetching user data:', {
           error,
@@ -69,31 +57,18 @@ export const useUserData = (
         
         if (attempt < MAX_RETRIES) {
           setRetryCount(attempt + 1);
-          toast({
-            title: "Connection issue",
-            description: `Retrying... (${attempt + 1}/${MAX_RETRIES})`,
-            duration: RETRY_DELAY
-          });
-          
           setTimeout(() => {
             fetchUserData(attempt + 1);
           }, RETRY_DELAY * Math.pow(2, attempt)); // Exponential backoff
         } else {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Could not load your data. Please try logging in again."
-          });
-        }
-      } finally {
-        if (attempt === 0) { // Only set loading to false after initial attempt
+          toast.error("Could not load your data. Please try refreshing the page.");
           setIsLoading(false);
         }
       }
     };
 
     fetchUserData();
-  }, [userId, toast, onResumeLoad, onKeywordsLoad]);
+  }, [userId, onResumeLoad, onKeywordsLoad]);
 
   return { isLoading };
 };

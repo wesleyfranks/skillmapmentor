@@ -30,7 +30,16 @@ const Profile = () => {
     handleUpdateKeywords,
   } = useResume(user.id);
 
-  const { isLoading } = useUserData(user.id, handleResumeTextChange);
+  const { isLoading } = useUserData(
+    user.id,
+    handleResumeTextChange,
+    (loadedKeywords, loadedNonKeywords) => {
+      if (loadedKeywords?.length > 0) {
+        console.log('Setting initial keywords:', loadedKeywords);
+        setKeywords(loadedKeywords);
+      }
+    }
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
