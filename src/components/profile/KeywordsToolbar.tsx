@@ -20,43 +20,47 @@ export const KeywordsToolbar = ({
 }: KeywordsToolbarProps) => {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onCopyKeywords}
-        className="flex items-center gap-2"
-      >
-        <Copy className="h-4 w-4" />
-        Copy All
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onRemoveDuplicates}
-        className="flex items-center gap-2"
-      >
-        <Filter className="h-4 w-4" />
-        Remove Duplicates
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onDeleteAll}
-        className="flex items-center gap-2"
-      >
-        <Trash2 className="h-4 w-4" />
-        Clear All
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onReanalyze}
-        disabled={isAnalyzing}
-        className="flex items-center gap-2"
-      >
-        <RefreshCw className={`h-4 w-4 ${isAnalyzing ? 'animate-spin' : ''}`} />
-        {isAnalyzing ? "Analyzing..." : "Analyze"}
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onCopyKeywords}
+          className="bg-background hover:bg-accent"
+        >
+          <Copy className="h-4 w-4" />
+          <span className="hidden sm:inline">Copy All</span>
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onRemoveDuplicates}
+          className="bg-background hover:bg-accent"
+        >
+          <Filter className="h-4 w-4" />
+          <span className="hidden sm:inline">Remove Duplicates</span>
+        </Button>
+      </div>
+      <div className="flex items-center gap-2 ml-auto">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onDeleteAll}
+          className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
+        >
+          <Trash2 className="h-4 w-4" />
+          <span className="hidden sm:inline">Clear All</span>
+        </Button>
+        <Button
+          variant="default"
+          size="sm"
+          onClick={onReanalyze}
+          disabled={isAnalyzing}
+          className="bg-primary hover:bg-primary/90"
+        >
+          <RefreshCw className={`h-4 w-4 ${isAnalyzing ? 'animate-spin' : ''}`} />
+          <span className="hidden sm:inline">{isAnalyzing ? "Analyzing..." : "Analyze"}</span>
+        </Button>
+      </div>
     </div>
   );
 };
