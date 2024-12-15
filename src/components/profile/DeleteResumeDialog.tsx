@@ -27,12 +27,12 @@ export const DeleteResumeDialog = ({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogTrigger asChild>
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="flex items-center gap-2 text-destructive hover:text-destructive"
+          className="flex items-center justify-center gap-2 text-destructive hover:text-destructive-foreground hover:bg-destructive col-span-2"
         >
           <Trash2 className="h-4 w-4" />
-          Delete
+          <span>Delete Resume</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

@@ -32,10 +32,8 @@ export const ResumeEditor = ({
 
   const handleEditClick = () => {
     if (isEditing) {
-      // If canceling, revert to original text
       onChange(originalText);
     } else {
-      // If starting to edit, store the current text as original
       setOriginalText(resumeText);
     }
     onEdit();
@@ -45,23 +43,23 @@ export const ResumeEditor = ({
     <div className="h-full">
       <div className="flex justify-between items-center mb-4">
         <label className="text-sm font-medium text-muted-foreground">Resume Text</label>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2 max-w-md">
           <Button
-            variant={resumeText ? "ghost" : "default"}
+            variant="outline"
             size="sm"
-            className="flex items-center gap-2"
+            className="flex items-center justify-center gap-2 bg-background hover:bg-accent"
             disabled={isUploading}
             onClick={() => document.getElementById('pdf-upload')?.click()}
           >
             {isUploading ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
-                Uploading...
+                <span>Uploading...</span>
               </>
             ) : (
               <>
                 <Upload className="h-4 w-4" />
-                Upload PDF
+                <span>Upload PDF</span>
               </>
             )}
           </Button>
@@ -69,17 +67,17 @@ export const ResumeEditor = ({
             variant="outline"
             size="sm"
             onClick={handleEditClick}
-            className="flex items-center gap-2"
+            className="flex items-center justify-center gap-2 bg-background hover:bg-accent"
           >
             {resumeText ? (
               <>
                 <Pencil className="h-4 w-4" />
-                {isEditing ? "Cancel" : "Edit"}
+                <span>{isEditing ? "Cancel" : "Edit"}</span>
               </>
             ) : (
               <>
                 <FilePlus className="h-4 w-4" />
-                Add Resume Manually
+                <span>Add Manual</span>
               </>
             )}
           </Button>
