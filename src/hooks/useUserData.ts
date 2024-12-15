@@ -26,23 +26,23 @@ export const useUserData = (
           .from("users")
           .select("resume_text, keywords, non_keywords")
           .eq("id", userId)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Supabase error:', error);
           throw error;
         }
 
-        console.log('Received data:', data);
-
-        if (data?.resume_text) {
-          onResumeLoad(data.resume_text);
-        }
-        
-        if (onKeywordsLoad) {
-          console.log('Setting initial keywords:', data?.keywords);
-          console.log('Setting initial non-keywords:', data?.non_keywords);
-          onKeywordsLoad(data?.keywords || [], data?.non_keywords || []);
+        if (data) {
+          console.log('Received data:', data);
+          
+          if (data.resume_text) {
+            onResumeLoad(data.resume_text);
+          }
+          
+          if (onKeywordsLoad) {
+            onKeywordsLoad(data.keywords || [], data.non_keywords || []);
+          }
         }
         
         setRetryCount(0);
