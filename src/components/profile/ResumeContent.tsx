@@ -1,5 +1,6 @@
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useEffect, useRef } from "react";
 
 interface ResumeContentProps {
   isEditing: boolean;
@@ -16,10 +17,20 @@ export const ResumeContent = ({
   onSave,
   isSaving,
 }: ResumeContentProps) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.max(textareaRef.current.scrollHeight, 792)}px`; // 792px = 11 inches
+    }
+  }, [resumeText]);
+
   if (isEditing) {
     return (
       <>
         <Textarea
+          ref={textareaRef}
           placeholder="Paste your resume text here..."
           value={resumeText}
           onChange={(e) => onChange(e.target.value)}
@@ -37,7 +48,8 @@ export const ResumeContent = ({
             whiteSpace: "pre-wrap",
             wordWrap: "break-word",
             overflowWrap: "break-word",
-            fontFamily: "monospace"
+            fontFamily: "monospace",
+            resize: "none"
           }}
         />
         <Button onClick={onSave} disabled={isSaving} className="mt-4">
