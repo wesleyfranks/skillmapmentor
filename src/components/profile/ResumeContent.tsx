@@ -34,6 +34,10 @@ export const ResumeContent = ({
             border: "1px solid #e2e8f0",
             backgroundColor: "white",
             boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+            whiteSpace: "pre-wrap",
+            wordWrap: "break-word",
+            overflowWrap: "break-word",
+            fontFamily: "monospace"
           }}
         />
         <Button onClick={onSave} disabled={isSaving} className="mt-4">
@@ -61,6 +65,10 @@ export const ResumeContent = ({
         tabSize: "4",
         border: "1px solid #e2e8f0",
         boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+        whiteSpace: "pre-wrap",
+        wordWrap: "break-word",
+        overflowWrap: "break-word",
+        fontFamily: "monospace"
       }}
     >
       {resumeText || "No resume text provided"}
