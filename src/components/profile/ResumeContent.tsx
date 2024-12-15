@@ -60,7 +60,7 @@ export const ResumeContent = ({
 
   if (!resumeText && !isEditing) {
     return (
-      <div className="flex flex-col items-center justify-center space-y-4 h-[300px] border border-dashed border-gray-300 rounded-lg bg-gray-50">
+      <div className="flex flex-col items-center justify-center space-y-4 h-[300px] border border-dashed border-gray-300 rounded-lg bg-gray-50 mt-4">
         <FileX className="w-12 h-12 text-gray-400" />
         <p className="text-lg font-semibold text-gray-500 uppercase tracking-wide">No Resume Available</p>
       </div>
@@ -70,7 +70,7 @@ export const ResumeContent = ({
   if (isEditing) {
     return (
       <>
-        <pre className="w-full">
+        <pre className="w-full mt-4">
           <textarea
             ref={textareaRef}
             placeholder="Paste your resume text here..."
@@ -113,7 +113,7 @@ export const ResumeContent = ({
 
   return (
     <pre 
-      className="whitespace-pre bg-white rounded-md font-mono mx-auto"
+      className="whitespace-pre bg-white rounded-md font-mono mx-auto mt-4"
       style={{ 
         padding: "0.25in",
         width: "8.5in",
