@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, Upload } from "lucide-react";
+import { Pencil, Upload, FilePlus } from "lucide-react";
 import { DeleteResumeDialog } from "./DeleteResumeDialog";
 import { ResumeContent } from "./ResumeContent";
 import { usePdfHandler } from "@/hooks/usePdfHandler";
@@ -45,13 +45,22 @@ export const ResumeEditor = ({
             {isUploading ? "Uploading..." : "Upload PDF"}
           </Button>
           <Button
-            variant="ghost"
+            variant={resumeText ? "ghost" : "default"}
             size="sm"
             onClick={() => onEdit()}
             className="flex items-center gap-2"
           >
-            <Pencil className="h-4 w-4" />
-            {isEditing ? "Cancel" : "Edit"}
+            {resumeText ? (
+              <>
+                <Pencil className="h-4 w-4" />
+                {isEditing ? "Cancel" : "Edit"}
+              </>
+            ) : (
+              <>
+                <FilePlus className="h-4 w-4" />
+                Add Resume Manually
+              </>
+            )}
           </Button>
           {!isEditing && resumeText && (
             <DeleteResumeDialog
