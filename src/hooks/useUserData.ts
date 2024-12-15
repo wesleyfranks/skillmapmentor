@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase, validateSession } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
@@ -10,23 +10,16 @@ export const useUserData = (
   onResumeLoad: (text: string) => void, 
   onKeywordsLoad?: (keywords: string[], nonKeywords: string[]) => void
 ) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
-  const [hasShownError, setHasShownError] = useState(false);
-  const MAX_RETRIES = 3;
-  const RETRY_DELAY = 1000;
-
-  useEffect(() => {
-    const fetchUserData = async (attempt = 0) => {
+  const { data, isLoading } = useQuery({
+    queryKey: ['userData', userId],
+    queryFn: async () => {
       if (!userId) {
         console.log('No userId provided');
-        setIsLoading(false);
-        return;
+        return null;
       }
       
       try {
-        console.log('Attempting to fetch user data:', {
-          attempt: attempt + 1,
+        console.log('Fetching user data:', {
           userId,
           timestamp: new Date().toISOString()
         });
@@ -49,8 +42,7 @@ export const useUserData = (
             error,
             errorMessage: error.message,
             errorDetails: error.details,
-            userId,
-            attempt: attempt + 1
+            userId
           });
           throw error;
         }
@@ -71,44 +63,18 @@ export const useUserData = (
           }
         }
         
-        setRetryCount(0);
-        setHasShownError(false);
-        setIsLoading(false);
+        return data;
       } catch (error: any) {
-        console.error('Detailed error in fetchUserData:', {
-          error,
-          errorMessage: error?.message,
-          errorDetails: error?.details,
-          userId,
-          attempt: attempt + 1,
-          retryCount: attempt,
-          timestamp: new Date().toISOString()
-        });
-        
-        if (attempt < MAX_RETRIES) {
-          console.log('Retrying fetch...', {
-            nextAttempt: attempt + 1,
-            maxRetries: MAX_RETRIES,
-            delay: RETRY_DELAY * Math.pow(2, attempt)
-          });
-          
-          setRetryCount(attempt + 1);
-          setTimeout(() => {
-            fetchUserData(attempt + 1);
-          }, RETRY_DELAY * Math.pow(2, attempt));
-        } else {
-          console.error('Max retries reached, stopping attempts');
-          if (!hasShownError) {
-            toast.error("Could not load your data. Please try refreshing the page.");
-            setHasShownError(true);
-          }
-          setIsLoading(false);
-        }
+        console.error('Error in fetchUserData:', error);
+        toast.error("Could not load your data. Please try refreshing the page.");
+        throw error;
       }
-    };
-
-    fetchUserData();
-  }, [userId, onResumeLoad, onKeywordsLoad, hasShownError]);
+    },
+    staleTime: Infinity, // Data won't become stale automatically
+    cacheTime: 1000 * 60 * 30, // Cache for 30 minutes
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
+  });
 
   return { isLoading };
 };
