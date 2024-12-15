@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, Upload, FilePlus } from "lucide-react";
+import { Pencil, Upload, FilePlus, Trash2 } from "lucide-react";
 import { DeleteResumeDialog } from "./DeleteResumeDialog";
 import { ResumeContent } from "./ResumeContent";
 import { usePdfHandler } from "@/hooks/usePdfHandler";
