@@ -19,7 +19,6 @@ export const useResume = (userId: string) => {
       const shouldAnalyze = await saveResume(resumeText);
       setIsEditing(false);
 
-      // Only analyze if there are no existing keywords
       if (shouldAnalyze) {
         await handleReanalyze(resumeText);
       }
@@ -61,7 +60,6 @@ export const useResume = (userId: string) => {
     }
   };
 
-  // Load initial data and handle keywords separately
   const { isLoading } = useUserData(
     userId, 
     (loadedText) => {
