@@ -24,9 +24,10 @@ export const ResumeToolbar = ({
   onDelete,
 }: ResumeToolbarProps) => {
   return (
-    <div className="flex justify-between items-center mb-4">
+    <div className="flex flex-col space-y-4 mb-4">
       <label className="text-sm font-medium text-muted-foreground">Resume Text</label>
-      <div className="grid grid-cols-2 gap-2 max-w-md">
+      <div className="grid grid-cols-2 gap-2">
+        {/* First row */}
         <Button
           variant="outline"
           size="sm"
@@ -45,6 +46,7 @@ export const ResumeToolbar = ({
             </>
           )}
         </Button>
+        
         {!isEditing && resumeText && (
           <DeleteResumeDialog
             open={showDeleteDialog}
@@ -52,6 +54,8 @@ export const ResumeToolbar = ({
             onDelete={onDelete}
           />
         )}
+        
+        {/* Second row - Upload button spans both columns */}
         <Button
           variant="default"
           size="sm"
