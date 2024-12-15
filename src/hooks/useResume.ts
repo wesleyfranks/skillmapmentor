@@ -37,13 +37,18 @@ export const useResume = (userId: string) => {
     setResumeText(text);
   };
 
-  // Load initial data
-  useUserData(
+  // Load initial data and handle keywords separately
+  const { isLoading } = useUserData(
     userId, 
-    handleResumeTextChange,
+    (loadedText) => {
+      if (loadedText) {
+        setResumeText(loadedText);
+      }
+    },
     (loadedKeywords) => {
       if (loadedKeywords && loadedKeywords.length > 0) {
-        setKeywords(loadedKeywords); // Preserve keywords on load
+        console.log('Setting initial keywords:', loadedKeywords);
+        setKeywords(loadedKeywords);
       }
     }
   );
@@ -54,6 +59,7 @@ export const useResume = (userId: string) => {
     isSaving,
     isAnalyzing,
     keywords,
+    isLoading,
     setResumeText,
     setIsEditing,
     handleSaveResume,
