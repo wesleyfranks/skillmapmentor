@@ -46,41 +46,41 @@ const Profile = () => {
       <div className="max-w-7xl mx-auto">
         <Card className="p-6">
           <h1 className="text-2xl font-bold mb-6">Profile</h1>
-          <div className="space-y-4">
+          <div className="space-y-4 mb-8">
             <ProfileHeader user={user} isLoading={isLoading} />
-            
-            {!isLoading && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Resume Column */}
-                <div className="lg:order-first order-last space-y-6 w-full mt-6">
-                  <h2 className="text-2xl font-bold text-center mb-6">Resume</h2>
-                  <ResumeEditor
-                    resumeText={resumeText}
-                    isEditing={isEditing}
-                    isSaving={isSaving}
-                    onEdit={() => setIsEditing(!isEditing)}
-                    onSave={handleSaveResume}
-                    onDelete={handleDeleteResume}
-                    onChange={handleResumeTextChange}
-                    userId={user.id}
-                  />
-                </div>
-
-                {/* Keywords Column */}
-                <div className="lg:order-last order-first space-y-6 w-full">
-                  <h2 className="text-2xl font-bold text-center mb-6">Keywords Found</h2>
-                  <KeywordAnalysis
-                    resumeText={resumeText}
-                    isAnalyzing={isAnalyzing}
-                    keywords={keywords}
-                    onReanalyze={handleReanalyze}
-                    onDeleteKeywords={handleDeleteKeywords}
-                    onUpdateKeywords={handleUpdateKeywords}
-                  />
-                </div>
-              </div>
-            )}
           </div>
+          
+          {!isLoading && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+              {/* Resume Column */}
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold text-center">Resume</h2>
+                <ResumeEditor
+                  resumeText={resumeText}
+                  isEditing={isEditing}
+                  isSaving={isSaving}
+                  onEdit={() => setIsEditing(!isEditing)}
+                  onSave={handleSaveResume}
+                  onDelete={handleDeleteResume}
+                  onChange={handleResumeTextChange}
+                  userId={user.id}
+                />
+              </div>
+
+              {/* Keywords Column */}
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold text-center">Keywords Found</h2>
+                <KeywordAnalysis
+                  resumeText={resumeText}
+                  isAnalyzing={isAnalyzing}
+                  keywords={keywords}
+                  onReanalyze={handleReanalyze}
+                  onDeleteKeywords={handleDeleteKeywords}
+                  onUpdateKeywords={handleUpdateKeywords}
+                />
+              </div>
+            </div>
+          )}
         </Card>
       </div>
     </div>
