@@ -24,7 +24,7 @@ export const ResumeToolbar = ({
   onDelete,
 }: ResumeToolbarProps) => {
   return (
-    <div className="grid grid-cols-2 gap-2 max-w-md">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
       <Button
         variant="outline"
         size="sm"
@@ -67,7 +67,7 @@ export const ResumeToolbar = ({
       <Button
         variant="default"
         size="sm"
-        className="bg-primary hover:bg-primary/90 w-full flex items-center justify-center gap-2 col-span-2"
+        className="bg-primary hover:bg-primary/90 w-full flex items-center justify-center gap-2 col-span-full"
         disabled={isUploading}
         onClick={onUpload}
       >
