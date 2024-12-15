@@ -26,5 +26,8 @@ export const supabase = createClient<Database>(
         'Access-Control-Allow-Origin': '*',
       },
     },
+    db: {
+      schema: 'public'
+    }
   }
 );
