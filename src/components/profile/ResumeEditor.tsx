@@ -28,6 +28,18 @@ export const ResumeEditor = ({
 }: ResumeEditorProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { isUploading, handleFileUpload } = usePdfHandler(userId, onChange);
+  const [originalText, setOriginalText] = useState(resumeText);
+
+  const handleEditClick = () => {
+    if (isEditing) {
+      // If canceling, revert to original text
+      onChange(originalText);
+    } else {
+      // If starting to edit, store the current text as original
+      setOriginalText(resumeText);
+    }
+    onEdit();
+  };
 
   return (
     <div className="h-full">
@@ -56,7 +68,7 @@ export const ResumeEditor = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onEdit()}
+            onClick={handleEditClick}
             className="flex items-center gap-2"
           >
             {resumeText ? (
