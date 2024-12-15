@@ -21,8 +21,11 @@ export const ResumeContent = ({
 
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.max(textareaRef.current.scrollHeight, 792)}px`; // 792px = 11 inches
+      textareaRef.current.style.height = '11in'; // Set initial height to 11 inches
+      if (resumeText) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = `${Math.max(textareaRef.current.scrollHeight, 792)}px`; // 792px = 11 inches
+      }
     }
   }, [resumeText]);
 
@@ -34,11 +37,10 @@ export const ResumeContent = ({
           placeholder="Paste your resume text here..."
           value={resumeText}
           onChange={(e) => onChange(e.target.value)}
-          className="min-h-[300px] font-mono whitespace-pre-wrap"
+          className="min-h-[11in] font-mono whitespace-pre-wrap"
           style={{ 
             padding: "0.25in",
             width: "8.5in",
-            minHeight: "11in",
             margin: "0 auto",
             lineHeight: "1.5",
             tabSize: "4",
