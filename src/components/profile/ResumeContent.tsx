@@ -39,12 +39,14 @@ export const ResumeContent = ({
   if (isEditing) {
     return (
       <>
-        <Textarea
+        <textarea
           ref={textareaRef}
           placeholder="Paste your resume text here..."
           value={resumeText}
           onChange={(e) => onChange(e.target.value)}
-          className={`font-mono whitespace-pre-wrap ${resumeText ? 'min-h-[11in]' : 'min-h-[300px]'}`}
+          className={`w-full font-mono whitespace-pre-wrap rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+            resumeText ? 'min-h-[11in]' : 'min-h-[300px]'
+          }`}
           style={{ 
             padding: resumeText ? "0.25in" : "0.5rem",
             width: resumeText ? "8.5in" : "100%",
@@ -58,7 +60,7 @@ export const ResumeContent = ({
             wordWrap: "break-word",
             overflowWrap: "break-word",
             fontFamily: "monospace",
-            resize: "none"
+            resize: "vertical"
           }}
         />
         <Button onClick={onSave} disabled={isSaving} className="mt-4">
