@@ -15,12 +15,17 @@ export const useUserData = (
   useEffect(() => {
     const fetchUserData = async (attempt = 0) => {
       if (!userId) {
+        console.log('No userId provided');
         setIsLoading(false);
         return;
       }
       
       try {
-        console.log('Fetching user data for ID:', userId);
+        console.log('Attempting to fetch user data:', {
+          attempt: attempt + 1,
+          userId,
+          timestamp: new Date().toISOString()
+        });
         
         // First, ensure the user exists in the users table
         const { data: existingUser, error: checkError } = await supabase
@@ -30,18 +35,29 @@ export const useUserData = (
           .maybeSingle();
 
         if (checkError) {
-          console.error('Error checking user existence:', checkError);
+          console.error('Error checking user existence:', {
+            error: checkError,
+            userId,
+            attempt: attempt + 1
+          });
           throw checkError;
         }
 
-        // If user doesn't exist, the trigger will create it
+        // If user doesn't exist, wait for trigger
         if (!existingUser) {
-          console.log('User record not found, waiting for trigger to create it...');
-          // Add a small delay to allow the trigger to complete
+          console.log('User record not found, waiting for trigger...', {
+            userId,
+            attempt: attempt + 1
+          });
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
         // Now fetch the user data
+        console.log('Fetching full user data...', {
+          userId,
+          attempt: attempt + 1
+        });
+        
         const { data, error } = await supabase
           .from("users")
           .select("resume_text, keywords, non_keywords")
@@ -49,38 +65,56 @@ export const useUserData = (
           .single();
 
         if (error) {
-          console.error('Supabase error:', error);
+          console.error('Error fetching user data:', {
+            error,
+            errorMessage: error.message,
+            errorDetails: error.details,
+            userId,
+            attempt: attempt + 1
+          });
           throw error;
         }
 
-        console.log('Received data:', data);
+        console.log('Successfully received user data:', {
+          hasResumeText: !!data?.resume_text,
+          keywordsCount: data?.keywords?.length,
+          nonKeywordsCount: data?.non_keywords?.length
+        });
         
         if (data?.resume_text) {
           onResumeLoad(data.resume_text);
         }
         
         if (onKeywordsLoad) {
-          console.log('Setting initial keywords:', data?.keywords);
-          console.log('Setting initial non-keywords:', data?.non_keywords);
           onKeywordsLoad(data?.keywords || [], data?.non_keywords || []);
         }
         
         setRetryCount(0);
         setIsLoading(false);
       } catch (error: any) {
-        console.error('Error fetching user data:', {
+        console.error('Detailed error in fetchUserData:', {
           error,
+          errorMessage: error?.message,
+          errorDetails: error?.details,
           userId,
-          attempt,
-          retryCount: attempt
+          attempt: attempt + 1,
+          retryCount: attempt,
+          timestamp: new Date().toISOString()
         });
         
         if (attempt < MAX_RETRIES) {
+          console.log('Retrying fetch...', {
+            nextAttempt: attempt + 1,
+            maxRetries: MAX_RETRIES,
+            delay: RETRY_DELAY * Math.pow(2, attempt)
+          });
+          
           setRetryCount(attempt + 1);
           setTimeout(() => {
             fetchUserData(attempt + 1);
           }, RETRY_DELAY * Math.pow(2, attempt));
         } else {
+          console.error('Max retries reached, stopping attempts');
           toast.error("Could not load your data. Please try refreshing the page.");
           setIsLoading(false);
         }
