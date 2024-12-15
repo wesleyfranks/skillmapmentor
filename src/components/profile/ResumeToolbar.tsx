@@ -24,8 +24,8 @@ export const ResumeToolbar = ({
   onDelete,
 }: ResumeToolbarProps) => {
   return (
-    <div className="space-y-4 mb-4">
-      <label className="text-sm font-medium text-muted-foreground">Resume Text</label>
+    <div className="mb-4">
+      <label className="text-sm font-medium text-muted-foreground block mb-2">Resume Text</label>
       <div className="grid grid-cols-2 gap-2">
         {/* First row */}
         <Button
