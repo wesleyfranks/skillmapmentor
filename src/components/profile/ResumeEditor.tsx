@@ -47,25 +47,6 @@ export const ResumeEditor = ({
           <Button
             variant="outline"
             size="sm"
-            className="flex items-center justify-center gap-2 bg-background hover:bg-accent"
-            disabled={isUploading}
-            onClick={() => document.getElementById('pdf-upload')?.click()}
-          >
-            {isUploading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
-                <span>Uploading...</span>
-              </>
-            ) : (
-              <>
-                <Upload className="h-4 w-4" />
-                <span>Upload PDF</span>
-              </>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
             onClick={handleEditClick}
             className="flex items-center justify-center gap-2 bg-background hover:bg-accent"
           >
@@ -88,6 +69,25 @@ export const ResumeEditor = ({
               onDelete={onDelete}
             />
           )}
+          <Button
+            variant="default"
+            size="sm"
+            className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 col-span-2"
+            disabled={isUploading}
+            onClick={() => document.getElementById('pdf-upload')?.click()}
+          >
+            {isUploading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground border-t-transparent" />
+                <span>Uploading...</span>
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4" />
+                <span>Upload PDF</span>
+              </>
+            )}
+          </Button>
         </div>
       </div>
 
