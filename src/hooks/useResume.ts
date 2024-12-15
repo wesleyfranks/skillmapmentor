@@ -9,7 +9,7 @@ export const useResume = (userId: string) => {
   const [isSaving, setIsSaving] = useState(false);
   
   const { isAnalyzing, keywords, setKeywords, handleReanalyze } = useKeywordAnalysis(userId);
-  const { saveResume, deleteResume } = useResumeActions(userId);
+  const { saveResume, deleteResume, deleteKeywords } = useResumeActions(userId);
 
   const handleSaveResume = async () => {
     setIsSaving(true);
@@ -29,7 +29,14 @@ export const useResume = (userId: string) => {
   const handleDeleteResume = async () => {
     const success = await deleteResume();
     if (success) {
-      setResumeText(""); // Only clear the resume text, keep the keywords intact
+      setResumeText("");
+    }
+  };
+
+  const handleDeleteKeywords = async () => {
+    const success = await deleteKeywords();
+    if (success) {
+      setKeywords([]);
     }
   };
 
@@ -64,6 +71,7 @@ export const useResume = (userId: string) => {
     setIsEditing,
     handleSaveResume,
     handleDeleteResume,
+    handleDeleteKeywords,
     handleResumeTextChange,
     handleReanalyze: () => handleReanalyze(resumeText),
   };
