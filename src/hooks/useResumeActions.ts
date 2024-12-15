@@ -1,38 +1,29 @@
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const useResumeActions = (userId: string) => {
-  const { toast } = useToast();
-
   const saveResume = async (resumeText: string) => {
     try {
-      const { data: userData, error: fetchError } = await supabase
+      const { data: existingUser } = await supabase
         .from("users")
-        .select("keywords")
+        .select("resume_text, keywords")
         .eq("id", userId)
         .single();
 
-      if (fetchError) throw fetchError;
-
       const { error } = await supabase
         .from("users")
-        .update({ resume_text: resumeText })
+        .update({ resume_text })
         .eq("id", userId);
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Your resume has been saved.",
-      });
-
-      return !userData?.keywords?.length;
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error saving resume",
-        description: error.message,
-      });
+      toast.success("Resume saved successfully");
+      
+      // Return true if we need to analyze (no existing keywords)
+      return !existingUser?.keywords?.length;
+    } catch (error) {
+      console.error("Error saving resume:", error);
+      toast.error("Failed to save resume");
       return false;
     }
   };
@@ -43,31 +34,23 @@ export const useResumeActions = (userId: string) => {
         .from("users")
         .update({ 
           resume_text: null, 
-          resume_file_path: null,
-          keywords: [] // Clear keywords when deleting resume
+          resume_file_path: null
         })
         .eq("id", userId);
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Your resume has been deleted.",
-      });
-      
+      toast.success("Resume deleted successfully");
       return true;
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error deleting resume",
-        description: error.message,
-      });
+    } catch (error) {
+      console.error("Error deleting resume:", error);
+      toast.error("Failed to delete resume");
       return false;
     }
   };
 
   return {
     saveResume,
-    deleteResume
+    deleteResume,
   };
 };
