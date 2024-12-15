@@ -23,8 +23,13 @@ export const ResumeContent = ({
           placeholder="Paste your resume text here..."
           value={resumeText}
           onChange={(e) => onChange(e.target.value)}
-          className="min-h-[300px] font-mono whitespace-pre-wrap"
-          style={{ whiteSpace: 'pre-wrap' }}
+          className="min-h-[300px] font-mono"
+          style={{ 
+            whiteSpace: 'pre',
+            fontFamily: 'monospace',
+            lineHeight: '1.5',
+            tabSize: '4'
+          }}
         />
         <Button onClick={onSave} disabled={isSaving} className="mt-2">
           {isSaving ? (
@@ -41,7 +46,15 @@ export const ResumeContent = ({
   }
 
   return (
-    <div className="whitespace-pre-wrap bg-muted p-4 rounded-md min-h-[100px] font-mono">
+    <div 
+      className="whitespace-pre bg-muted p-4 rounded-md min-h-[100px] font-mono"
+      style={{ 
+        fontFamily: 'monospace',
+        lineHeight: '1.5',
+        tabSize: '4',
+        overflowX: 'auto'
+      }}
+    >
       {resumeText || "No resume text provided"}
     </div>
   );
