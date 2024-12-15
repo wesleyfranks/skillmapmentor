@@ -43,7 +43,8 @@ export const useResumeActions = (userId: string) => {
         .from("users")
         .update({ 
           resume_text: null, 
-          resume_file_path: null
+          resume_file_path: null,
+          keywords: [] // Clear keywords when deleting resume
         })
         .eq("id", userId);
 
