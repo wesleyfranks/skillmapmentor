@@ -30,12 +30,20 @@ export const useResumeActions = (userId: string) => {
 
   const deleteResume = async () => {
     try {
-      // Only update resume-related fields, keeping keywords intact
+      // First, get the current user data to preserve keywords
+      const { data: currentUser } = await supabase
+        .from("users")
+        .select("keywords")
+        .eq("id", userId)
+        .single();
+
+      // Update only resume-related fields, explicitly keeping keywords
       const { error } = await supabase
         .from("users")
         .update({ 
-          resume_text: null, 
+          resume_text: null,
           resume_file_path: null,
+          keywords: currentUser?.keywords || [] // Preserve existing keywords
         })
         .eq("id", userId);
 

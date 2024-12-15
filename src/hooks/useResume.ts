@@ -29,7 +29,7 @@ export const useResume = (userId: string) => {
   const handleDeleteResume = async () => {
     const success = await deleteResume();
     if (success) {
-      setResumeText(""); // Only clear the resume text, keep the keywords
+      setResumeText(""); // Only clear the resume text, keep the keywords intact
     }
   };
 
@@ -41,7 +41,11 @@ export const useResume = (userId: string) => {
   useUserData(
     userId, 
     handleResumeTextChange,
-    (loadedKeywords) => setKeywords(loadedKeywords)
+    (loadedKeywords) => {
+      if (loadedKeywords && loadedKeywords.length > 0) {
+        setKeywords(loadedKeywords); // Preserve keywords on load
+      }
+    }
   );
 
   return {
