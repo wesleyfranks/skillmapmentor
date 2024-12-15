@@ -22,46 +22,13 @@ export const useUserData = (
       try {
         console.log('Fetching user data for ID:', userId);
         
-        // First try to get the user data
-        let { data, error } = await supabase
+        const { data, error } = await supabase
           .from("users")
-          .select("resume_text, keywords, non_keywords, email")
+          .select("resume_text, keywords, non_keywords")
           .eq("id", userId)
           .single();
 
-        // If no user found, try to create one
-        if (error?.message?.includes('JSON object requested, multiple (or no) rows returned')) {
-          console.log('No user found, creating new user record');
-          
-          // First get the user's email from auth
-          const { data: authUser, error: authError } = await supabase.auth.getUser(userId);
-          
-          if (authError) {
-            console.error('Error getting auth user:', authError);
-            throw authError;
-          }
-
-          if (!authUser?.user?.email) {
-            throw new Error('No email found for user');
-          }
-
-          const { data: userData, error: userError } = await supabase
-            .from("users")
-            .insert({
-              id: userId,
-              email: authUser.user.email,
-              full_name: authUser.user.user_metadata?.full_name
-            })
-            .select()
-            .single();
-
-          if (userError) {
-            console.error('Error creating user:', userError);
-            throw userError;
-          }
-
-          data = userData;
-        } else if (error) {
+        if (error) {
           console.error('Supabase error:', error);
           throw error;
         }
