@@ -44,6 +44,7 @@ const Profile = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Resume Column */}
                 <div className="lg:order-first order-last space-y-6">
+                  <h2 className="text-lg font-semibold">Resume</h2>
                   <ResumeEditor
                     resumeText={resumeText}
                     isEditing={isEditing}
@@ -58,6 +59,7 @@ const Profile = () => {
 
                 {/* Keywords Column */}
                 <div className="lg:order-last order-first space-y-6">
+                  <h2 className="text-lg font-semibold">Keywords Found</h2>
                   <KeywordAnalysis
                     resumeText={resumeText}
                     isAnalyzing={isAnalyzing}

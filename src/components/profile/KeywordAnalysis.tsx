@@ -104,31 +104,26 @@ export const KeywordAnalysis = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
-        <h2 className="text-lg font-semibold">Keywords Found</h2>
-        <div className="flex flex-wrap gap-2">
-          {keywords.length > 0 && (
-            <>
-              <KeywordsToolbar
-                keywordsCount={keywords.length}
-                isAnalyzing={isAnalyzing}
-                onReanalyze={onReanalyze}
-                onRemoveDuplicates={handleRemoveDuplicates}
-                onCopyKeywords={handleCopyKeywords}
-                onDeleteAll={onDeleteKeywords}
-              />
-            </>
-          )}
-          {!keywords.length && (
-            <button
-              onClick={onReanalyze}
-              disabled={isAnalyzing}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
-            >
-              {isAnalyzing ? "Analyzing..." : "Analyze"}
-            </button>
-          )}
-        </div>
+      <div className="w-full">
+        {keywords.length > 0 && (
+          <KeywordsToolbar
+            keywordsCount={keywords.length}
+            isAnalyzing={isAnalyzing}
+            onReanalyze={onReanalyze}
+            onRemoveDuplicates={handleRemoveDuplicates}
+            onCopyKeywords={handleCopyKeywords}
+            onDeleteAll={onDeleteKeywords}
+          />
+        )}
+        {!keywords.length && (
+          <button
+            onClick={onReanalyze}
+            disabled={isAnalyzing}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+          >
+            {isAnalyzing ? "Analyzing..." : "Analyze"}
+          </button>
+        )}
       </div>
 
       {(isAnalyzing || keywords.length > 0) ? (
