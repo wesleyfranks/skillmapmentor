@@ -29,8 +29,7 @@ export const useResume = (userId: string) => {
   const handleDeleteResume = async () => {
     const success = await deleteResume();
     if (success) {
-      setResumeText("");
-      setKeywords([]);
+      setResumeText(""); // Only clear the resume text, keep the keywords
     }
   };
 
