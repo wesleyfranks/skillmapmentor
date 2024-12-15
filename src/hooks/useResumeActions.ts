@@ -30,11 +30,12 @@ export const useResumeActions = (userId: string) => {
 
   const deleteResume = async () => {
     try {
+      // Only update resume-related fields, keeping keywords intact
       const { error } = await supabase
         .from("users")
         .update({ 
           resume_text: null, 
-          resume_file_path: null
+          resume_file_path: null,
         })
         .eq("id", userId);
 
