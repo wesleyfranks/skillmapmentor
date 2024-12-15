@@ -52,7 +52,7 @@ const Profile = () => {
             {!isLoading && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Resume Column */}
-                <div className="lg:order-first order-last space-y-6 w-full">
+                <div className="lg:order-first order-last space-y-6 w-full mt-6">
                   <h2 className="text-2xl font-bold text-center mb-6">Resume</h2>
                   <ResumeEditor
                     resumeText={resumeText}
