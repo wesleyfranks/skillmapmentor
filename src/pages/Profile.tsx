@@ -20,11 +20,14 @@ const Profile = () => {
     isSaving,
     isAnalyzing,
     keywords,
+    setKeywords,
     setIsEditing,
     handleSaveResume,
     handleDeleteResume,
+    handleDeleteKeywords,
     handleResumeTextChange,
     handleReanalyze,
+    handleUpdateKeywords,
   } = useResume(user.id);
 
   const { isLoading } = useUserData(user.id, handleResumeTextChange);
@@ -46,6 +49,8 @@ const Profile = () => {
                     isAnalyzing={isAnalyzing}
                     keywords={keywords}
                     onReanalyze={handleReanalyze}
+                    onDeleteKeywords={handleDeleteKeywords}
+                    onUpdateKeywords={handleUpdateKeywords}
                   />
                 </div>
 

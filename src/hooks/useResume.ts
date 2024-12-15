@@ -44,6 +44,21 @@ export const useResume = (userId: string) => {
     setResumeText(text);
   };
 
+  const handleUpdateKeywords = async (newKeywords: string[]) => {
+    try {
+      const { error } = await supabase
+        .from("users")
+        .update({ keywords: newKeywords })
+        .eq("id", userId);
+
+      if (error) throw error;
+      setKeywords(newKeywords);
+    } catch (error) {
+      console.error("Error updating keywords:", error);
+      toast.error("Failed to update keywords");
+    }
+  };
+
   // Load initial data and handle keywords separately
   const { isLoading } = useUserData(
     userId, 
@@ -68,11 +83,13 @@ export const useResume = (userId: string) => {
     keywords,
     isLoading,
     setResumeText,
+    setKeywords,
     setIsEditing,
     handleSaveResume,
     handleDeleteResume,
     handleDeleteKeywords,
     handleResumeTextChange,
     handleReanalyze: () => handleReanalyze(resumeText),
+    handleUpdateKeywords,
   };
 };
