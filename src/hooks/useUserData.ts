@@ -49,6 +49,7 @@ export const useUserData = (userId: string, onResumeLoad: (text: string) => void
         }
         
         if (data?.keywords && onKeywordsLoad) {
+          console.log('Setting initial keywords:', data.keywords);
           onKeywordsLoad(data.keywords);
         }
         
