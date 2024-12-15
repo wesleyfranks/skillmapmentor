@@ -21,21 +21,6 @@ export const useKeywordAnalysis = (userId: string) => {
         .then(hash => Array.from(new Uint8Array(hash))
           .map(b => b.toString(16).padStart(2, '0'))
           .join(''));
-      
-      const { data: userData } = await supabase
-        .from("users")
-        .select("resume_text")
-        .eq("id", userId)
-        .single();
-      
-      // If the resume text is the same as what's stored, don't reanalyze
-      if (userData?.resume_text === text && existingKeywords.length > 0) {
-        console.log('Resume text unchanged, skipping analysis');
-        toast({
-          description: "Resume text unchanged. No new analysis needed.",
-        });
-        return;
-      }
 
       const { data, error } = await supabase.functions.invoke('analyze-resume', {
         body: { 
