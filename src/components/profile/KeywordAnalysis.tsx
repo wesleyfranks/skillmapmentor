@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RefreshCw, X, Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface KeywordAnalysisProps {
   resumeText: string;
@@ -23,6 +23,30 @@ export const KeywordAnalysis = ({
   onUpdateKeywords,
 }: KeywordAnalysisProps) => {
   const [editingKeyword, setEditingKeyword] = useState<{ index: number; value: string } | null>(null);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (isAnalyzing) {
+      setProgress(0);
+      // Simulate progress in 3 stages
+      interval = setInterval(() => {
+        setProgress(prev => {
+          if (prev < 30) return prev + 2; // First stage: Quick progress to 30%
+          if (prev < 70) return prev + 1; // Second stage: Slower progress to 70%
+          if (prev < 90) return prev + 0.5; // Third stage: Very slow progress to 90%
+          return prev; // Stop at 90% until analysis is complete
+        });
+      }, 100);
+    } else {
+      setProgress(100); // Complete the progress when analysis is done
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isAnalyzing]);
 
   if (!resumeText) return null;
 
@@ -87,8 +111,13 @@ export const KeywordAnalysis = ({
         <div className="bg-muted/50 rounded-lg p-4 min-h-[100px] max-h-[500px] overflow-y-auto">
           {isAnalyzing && (
             <div className="space-y-4">
-              <Progress value={75} className="w-full" />
-              <div className="text-sm text-muted-foreground">Analyzing Resume...</div>
+              <Progress value={progress} className="w-full" />
+              <div className="text-sm text-muted-foreground">
+                {progress < 30 && "Initializing analysis..."}
+                {progress >= 30 && progress < 70 && "Processing resume content..."}
+                {progress >= 70 && progress < 90 && "Extracting keywords..."}
+                {progress >= 90 && "Finalizing results..."}
+              </div>
               <div className="flex flex-wrap gap-2">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <Skeleton key={i} className="h-6 w-20" />
