@@ -12,7 +12,14 @@ import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
 import Pricing from "./pages/Pricing";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const AppRoutes = () => {
   const { user, loading } = useAuth();
@@ -34,10 +41,10 @@ const AppRoutes = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <BrowserRouter>
-        <AuthProvider>
+  <AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <BrowserRouter>
           <div className="min-h-screen bg-background flex flex-col">
             <Header />
             <main className="flex-1">
@@ -47,10 +54,10 @@ const App = () => (
           </div>
           <Toaster />
           <Sonner />
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </AuthProvider>
 );
 
 export default App;
