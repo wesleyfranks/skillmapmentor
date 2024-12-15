@@ -1,10 +1,9 @@
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { RefreshCw, X, Pencil, Trash2, Filter } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { KeywordsList } from "./KeywordsList";
+import { KeywordsToolbar } from "./KeywordsToolbar";
 
 interface KeywordAnalysisProps {
   resumeText: string;
@@ -31,25 +30,22 @@ export const KeywordAnalysis = ({
     
     if (isAnalyzing) {
       setProgress(0);
-      // Simulate progress in 3 stages
       interval = setInterval(() => {
         setProgress(prev => {
-          if (prev < 30) return prev + 2; // First stage: Quick progress to 30%
-          if (prev < 70) return prev + 1; // Second stage: Slower progress to 70%
-          if (prev < 90) return prev + 0.5; // Third stage: Very slow progress to 90%
-          return prev; // Stop at 90% until analysis is complete
+          if (prev < 30) return prev + 2;
+          if (prev < 70) return prev + 1;
+          if (prev < 90) return prev + 0.5;
+          return prev;
         });
       }, 100);
     } else {
-      setProgress(100); // Complete the progress when analysis is done
+      setProgress(100);
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
   }, [isAnalyzing]);
-
-  if (!resumeText) return null;
 
   const handleEditKeyword = (index: number, currentValue: string) => {
     setEditingKeyword({ index, value: currentValue });
@@ -73,7 +69,6 @@ export const KeywordAnalysis = ({
 
   const handleRemoveDuplicates = () => {
     if (onUpdateKeywords) {
-      // Convert to lowercase for case-insensitive comparison, remove duplicates, and maintain original case
       const seen = new Set<string>();
       const uniqueKeywords = keywords.filter(keyword => {
         const lowercase = keyword.toLowerCase();
@@ -94,53 +89,27 @@ export const KeywordAnalysis = ({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSaveKeyword();
-    } else if (e.key === 'Escape') {
-      setEditingKeyword(null);
+  const handleCopyKeywords = async () => {
+    try {
+      await navigator.clipboard.writeText(keywords.join(', '));
+      toast.success('Keywords copied to clipboard');
+    } catch (error) {
+      toast.error('Failed to copy keywords');
     }
   };
 
+  if (!resumeText) return null;
+
   return (
     <div className="h-full">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Keywords Found</h2>
-        <div className="flex gap-2">
-          {keywords.length > 0 && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRemoveDuplicates}
-                className="flex items-center gap-2"
-              >
-                <Filter className="h-4 w-4" />
-                Remove Duplicates
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onDeleteKeywords}
-                className="flex items-center gap-2"
-              >
-                <Trash2 className="h-4 w-4" />
-                Clear All
-              </Button>
-            </>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onReanalyze}
-            disabled={isAnalyzing}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${isAnalyzing ? 'animate-spin' : ''}`} />
-            {isAnalyzing ? "Analyzing..." : "Analyze"}
-          </Button>
-        </div>
-      </div>
+      <KeywordsToolbar
+        keywordsCount={keywords.length}
+        isAnalyzing={isAnalyzing}
+        onReanalyze={onReanalyze}
+        onRemoveDuplicates={handleRemoveDuplicates}
+        onCopyKeywords={handleCopyKeywords}
+        onDeleteAll={onDeleteKeywords}
+      />
 
       {(isAnalyzing || keywords.length > 0) ? (
         <div className="bg-muted/50 rounded-lg p-4 min-h-[100px] max-h-[500px] overflow-y-auto">
@@ -162,61 +131,15 @@ export const KeywordAnalysis = ({
           )}
 
           {keywords.length > 0 && !isAnalyzing && (
-            <div className="flex flex-wrap gap-2">
-              {keywords.map((keyword, index) => (
-                <div
-                  key={index}
-                  className={`group flex items-center gap-1 ${
-                    editingKeyword?.index === index
-                      ? ''
-                      : 'bg-primary/10 text-primary px-2 py-1 rounded-md text-sm animate-fade-in'
-                  }`}
-                >
-                  {editingKeyword?.index === index ? (
-                    <div className="flex items-center gap-1">
-                      <Input
-                        value={editingKeyword.value}
-                        onChange={(e) => setEditingKeyword({ index, value: e.target.value })}
-                        onBlur={handleSaveKeyword}
-                        onKeyDown={handleKeyDown}
-                        className="h-6 w-32 text-sm"
-                        autoFocus
-                      />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => setEditingKeyword(null)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <span>{keyword}</span>
-                      <div className="hidden group-hover:flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => handleEditKeyword(index, keyword)}
-                        >
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 text-destructive"
-                          onClick={() => handleDeleteKeyword(index)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
+            <KeywordsList
+              keywords={keywords}
+              editingKeyword={editingKeyword}
+              onEdit={handleEditKeyword}
+              onSave={handleSaveKeyword}
+              onCancel={() => setEditingKeyword(null)}
+              onDelete={handleDeleteKeyword}
+              onEditingChange={(index, value) => setEditingKeyword({ index, value })}
+            />
           )}
         </div>
       ) : (
