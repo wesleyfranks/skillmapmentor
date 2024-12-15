@@ -21,10 +21,11 @@ export const ResumeContent = ({
 
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = '11in'; // Set initial height to 11 inches
       if (resumeText) {
         textareaRef.current.style.height = 'auto';
         textareaRef.current.style.height = `${Math.max(textareaRef.current.scrollHeight, 792)}px`; // 792px = 11 inches
+      } else {
+        textareaRef.current.style.height = '300px'; // Default height when empty
       }
     }
   }, [resumeText]);
@@ -37,16 +38,16 @@ export const ResumeContent = ({
           placeholder="Paste your resume text here..."
           value={resumeText}
           onChange={(e) => onChange(e.target.value)}
-          className="min-h-[11in] font-mono whitespace-pre-wrap"
+          className={`font-mono whitespace-pre-wrap ${resumeText ? 'min-h-[11in]' : 'min-h-[300px]'}`}
           style={{ 
-            padding: "0.25in",
-            width: "8.5in",
-            margin: "0 auto",
+            padding: resumeText ? "0.25in" : "0.5rem",
+            width: resumeText ? "8.5in" : "100%",
+            margin: resumeText ? "0 auto" : "0",
             lineHeight: "1.5",
             tabSize: "4",
             border: "1px solid #e2e8f0",
             backgroundColor: "white",
-            boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+            boxShadow: resumeText ? "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)" : "none",
             whiteSpace: "pre-wrap",
             wordWrap: "break-word",
             overflowWrap: "break-word",
@@ -70,15 +71,15 @@ export const ResumeContent = ({
 
   return (
     <div 
-      className="whitespace-pre-wrap bg-white rounded-md font-mono mx-auto"
+      className={`whitespace-pre-wrap bg-white rounded-md font-mono ${resumeText ? 'mx-auto' : 'w-full'}`}
       style={{ 
-        padding: "0.25in",
-        width: "8.5in",
-        minHeight: "11in",
+        padding: resumeText ? "0.25in" : "0.5rem",
+        width: resumeText ? "8.5in" : "100%",
+        minHeight: resumeText ? "11in" : "300px",
         lineHeight: "1.5",
         tabSize: "4",
         border: "1px solid #e2e8f0",
-        boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+        boxShadow: resumeText ? "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)" : "none",
         whiteSpace: "pre-wrap",
         wordWrap: "break-word",
         overflowWrap: "break-word",
