@@ -35,7 +35,7 @@ export const ResumeEditor = ({
         <label className="text-sm font-medium text-muted-foreground">Resume Text</label>
         <div className="flex gap-2">
           <Button
-            variant="outline"
+            variant={resumeText ? "ghost" : "default"}
             size="sm"
             className="flex items-center gap-2"
             disabled={isUploading}
@@ -45,7 +45,7 @@ export const ResumeEditor = ({
             {isUploading ? "Uploading..." : "Upload PDF"}
           </Button>
           <Button
-            variant={resumeText ? "ghost" : "default"}
+            variant="outline"
             size="sm"
             onClick={() => onEdit()}
             className="flex items-center gap-2"
