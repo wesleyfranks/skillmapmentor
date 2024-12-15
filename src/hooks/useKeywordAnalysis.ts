@@ -31,6 +31,9 @@ export const useKeywordAnalysis = (userId: string) => {
       // If the resume text is the same as what's stored, don't reanalyze
       if (userData?.resume_text === text && existingKeywords.length > 0) {
         console.log('Resume text unchanged, skipping analysis');
+        toast({
+          description: "Resume text unchanged. No new analysis needed.",
+        });
         return;
       }
 
@@ -97,11 +100,17 @@ export const useKeywordAnalysis = (userId: string) => {
 
       setRetryCount(0);
       
-      // Only show toast if new keywords were added
-      if (keywordList.length > existingKeywords.length) {
+      // Compare with existing keywords to determine if new ones were found
+      const newKeywordsCount = keywordList.length - existingKeywords.length;
+      
+      if (newKeywordsCount > 0) {
         toast({
-          title: "Success",
-          description: "New keywords have been added.",
+          title: "Analysis Complete",
+          description: `Found ${newKeywordsCount} new keyword${newKeywordsCount === 1 ? '' : 's'}!`,
+        });
+      } else {
+        toast({
+          description: "Analysis complete. No new keywords found.",
         });
       }
     } catch (error: any) {
