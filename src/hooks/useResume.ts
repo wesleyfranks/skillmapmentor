@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useKeywordAnalysis } from "./useKeywordAnalysis";
 import { useResumeActions } from "./useResumeActions";
 import { useUserData } from "./useUserData";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const useResume = (userId: string) => {
   const [resumeText, setResumeText] = useState("");
