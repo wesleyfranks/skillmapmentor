@@ -41,8 +41,17 @@ export const ResumeEditor = ({
             disabled={isUploading}
             onClick={() => document.getElementById('pdf-upload')?.click()}
           >
-            <Upload className="h-4 w-4" />
-            {isUploading ? "Uploading..." : "Upload PDF"}
+            {isUploading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4" />
+                Upload PDF
+              </>
+            )}
           </Button>
           <Button
             variant="outline"
