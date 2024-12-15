@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase, validateSession } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+
+type UserData = Database['public']['Tables']['users']['Row'];
 
 export const useUserData = (
   userId: string, 
@@ -9,9 +12,9 @@ export const useUserData = (
 ) => {
   const [isLoading, setIsLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
+  const [hasShownError, setHasShownError] = useState(false);
   const MAX_RETRIES = 3;
   const RETRY_DELAY = 1000;
-  const [hasShownError, setHasShownError] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async (attempt = 0) => {
@@ -28,7 +31,6 @@ export const useUserData = (
           timestamp: new Date().toISOString()
         });
 
-        // Validate session before making the request
         const isSessionValid = await validateSession();
         
         if (!isSessionValid) {
@@ -36,7 +38,6 @@ export const useUserData = (
           throw new Error('No valid session');
         }
 
-        // Using the Supabase client to fetch user data
         const { data, error } = await supabase
           .from('users')
           .select('resume_text, keywords, non_keywords')
@@ -54,18 +55,20 @@ export const useUserData = (
           throw error;
         }
 
-        console.log('Successfully received user data:', {
-          hasResumeText: !!data?.resume_text,
-          keywordsCount: data?.keywords?.length,
-          nonKeywordsCount: data?.non_keywords?.length
-        });
-        
-        if (data?.resume_text) {
-          onResumeLoad(data.resume_text);
-        }
-        
-        if (onKeywordsLoad) {
-          onKeywordsLoad(data?.keywords || [], data?.non_keywords || []);
+        if (data) {
+          console.log('Successfully received user data:', {
+            hasResumeText: !!data.resume_text,
+            keywordsCount: data.keywords?.length,
+            nonKeywordsCount: data.non_keywords?.length
+          });
+          
+          if (data.resume_text) {
+            onResumeLoad(data.resume_text);
+          }
+          
+          if (onKeywordsLoad) {
+            onKeywordsLoad(data.keywords || [], data.non_keywords || []);
+          }
         }
         
         setRetryCount(0);

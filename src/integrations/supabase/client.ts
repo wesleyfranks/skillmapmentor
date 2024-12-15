@@ -29,33 +29,25 @@ export const supabase = createClient<Database>(
     db: {
       schema: 'public'
     },
-    // Add request retries
     realtime: {
       params: {
         eventsPerSecond: 2,
       },
-    },
-    // Add better error logging
-    logger: {
-      error: (message: string, extra?: Record<string, unknown>) => {
-        console.error('Supabase Error:', message, extra);
-      },
-      warn: (message: string) => {
-        console.warn('Supabase Warning:', message);
-      },
-      info: (message: string) => {
-        console.info('Supabase Info:', message);
-      },
-    },
+    }
   }
 );
 
 // Add a session check helper
 export const validateSession = async () => {
-  const { data: { session }, error } = await supabase.auth.getSession();
-  if (error) {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error('Session validation error:', error);
+      return false;
+    }
+    return !!session;
+  } catch (error) {
     console.error('Session validation error:', error);
     return false;
   }
-  return !!session;
 };
