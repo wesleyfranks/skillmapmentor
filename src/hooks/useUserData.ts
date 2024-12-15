@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export const useUserData = (userId: string, onResumeLoad: (text: string) => void, onKeywordsLoad?: (keywords: string[]) => void) => {
@@ -11,16 +11,26 @@ export const useUserData = (userId: string, onResumeLoad: (text: string) => void
 
   useEffect(() => {
     const fetchUserData = async (attempt = 0) => {
-      if (!userId) return;
+      if (!userId) {
+        setIsLoading(false);
+        return;
+      }
       
       try {
+        console.log('Fetching user data for ID:', userId);
+        
         const { data, error } = await supabase
           .from("users")
           .select("resume_text, keywords")
           .eq("id", userId)
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
+
+        console.log('Received data:', data);
 
         if (data?.resume_text) {
           onResumeLoad(data.resume_text);
@@ -32,25 +42,38 @@ export const useUserData = (userId: string, onResumeLoad: (text: string) => void
         
         setRetryCount(0); // Reset on success
       } catch (error: any) {
-        console.error('Error fetching user data:', error);
+        console.error('Error fetching user data:', {
+          error,
+          userId,
+          attempt,
+          retryCount: attempt
+        });
+        
+        // Check if we're authenticated
+        const { data: { session }, error: authError } = await supabase.auth.getSession();
+        if (authError || !session) {
+          console.error('Authentication error:', authError);
+          toast.error("Authentication error. Please try logging in again.");
+          return;
+        }
         
         // Retry logic for network errors
-        if (attempt < MAX_RETRIES && (error.message === "Failed to fetch" || error.code === "NETWORK_ERROR")) {
+        if (attempt < MAX_RETRIES && (
+          error.message === "Failed to fetch" || 
+          error.code === "NETWORK_ERROR" ||
+          error.message?.includes('FetchError')
+        )) {
           setRetryCount(attempt + 1);
-          toast({
-            title: "Network error",
-            description: `Retrying in ${RETRY_DELAY/1000} seconds... (Attempt ${attempt + 1}/${MAX_RETRIES})`,
-          });
+          toast.info(
+            `Network error, retrying... (${attempt + 1}/${MAX_RETRIES})`, 
+            { duration: RETRY_DELAY }
+          );
           
           setTimeout(() => {
             fetchUserData(attempt + 1);
           }, RETRY_DELAY * Math.pow(2, attempt)); // Exponential backoff
         } else {
-          toast({
-            variant: "destructive",
-            title: "Error fetching user data",
-            description: error.message,
-          });
+          toast.error("Error fetching user data. Please refresh the page.");
         }
       } finally {
         if (attempt === 0) { // Only set loading to false after initial attempt
@@ -60,7 +83,7 @@ export const useUserData = (userId: string, onResumeLoad: (text: string) => void
     };
 
     fetchUserData();
-  }, [userId, toast, onResumeLoad, onKeywordsLoad]);
+  }, [userId, onResumeLoad, onKeywordsLoad]);
 
   return { isLoading };
 };
