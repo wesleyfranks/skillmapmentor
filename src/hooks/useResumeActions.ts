@@ -30,24 +30,39 @@ export const useResumeActions = (userId: string) => {
 
   const deleteResume = async () => {
     try {
-      // First, get the current user data to preserve keywords
-      const { data: currentUser } = await supabase
+      // First, get the current user data including keywords
+      const { data: currentUser, error: fetchError } = await supabase
         .from("users")
         .select("keywords")
         .eq("id", userId)
         .single();
 
-      // Update only resume-related fields, explicitly keeping keywords
-      const { error } = await supabase
+      if (fetchError) throw fetchError;
+
+      console.log('Current user keywords before delete:', currentUser?.keywords);
+
+      // Update only resume-related fields while explicitly preserving keywords
+      const { error: updateError } = await supabase
         .from("users")
         .update({ 
           resume_text: null,
           resume_file_path: null,
-          keywords: currentUser?.keywords || [] // Preserve existing keywords
+          keywords: currentUser?.keywords // Keep existing keywords unchanged
         })
         .eq("id", userId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Verify the update
+      const { data: verifyUser, error: verifyError } = await supabase
+        .from("users")
+        .select("keywords")
+        .eq("id", userId)
+        .single();
+
+      if (verifyError) throw verifyError;
+
+      console.log('User keywords after delete:', verifyUser?.keywords);
 
       toast.success("Resume deleted successfully");
       return true;
