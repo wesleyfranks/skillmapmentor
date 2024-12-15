@@ -19,6 +19,19 @@ export const useUserData = (userId: string, onResumeLoad: (text: string) => void
       try {
         console.log('Fetching user data for ID:', userId);
         
+        // First check if we're authenticated
+        const { data: { session }, error: authError } = await supabase.auth.getSession();
+        if (authError || !session) {
+          console.error('Authentication error:', authError);
+          toast({
+            variant: "destructive",
+            title: "Authentication error",
+            description: "Please try logging in again."
+          });
+          setIsLoading(false);
+          return;
+        }
+
         const { data, error } = await supabase
           .from("users")
           .select("resume_text, keywords")
@@ -49,27 +62,16 @@ export const useUserData = (userId: string, onResumeLoad: (text: string) => void
           retryCount: attempt
         });
         
-        // Check if we're authenticated
-        const { data: { session }, error: authError } = await supabase.auth.getSession();
-        if (authError || !session) {
-          console.error('Authentication error:', authError);
-          toast({
-            variant: "destructive",
-            title: "Authentication error",
-            description: "Please try logging in again."
-          });
-          return;
-        }
-        
         // Retry logic for network errors
         if (attempt < MAX_RETRIES && (
           error.message === "Failed to fetch" || 
           error.code === "NETWORK_ERROR" ||
-          error.message?.includes('FetchError')
+          error.message?.includes('FetchError') ||
+          error.message?.includes('NetworkError')
         )) {
           setRetryCount(attempt + 1);
           toast({
-            title: "Network error",
+            title: "Connection issue",
             description: `Retrying... (${attempt + 1}/${MAX_RETRIES})`,
             duration: RETRY_DELAY
           });
@@ -81,7 +83,7 @@ export const useUserData = (userId: string, onResumeLoad: (text: string) => void
           toast({
             variant: "destructive",
             title: "Error",
-            description: "Error fetching user data. Please refresh the page."
+            description: "Could not load your data. Please check your connection and refresh the page."
           });
         }
       } finally {
