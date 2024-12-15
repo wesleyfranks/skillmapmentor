@@ -35,7 +35,6 @@ export const useResumeActions = (userId: string) => {
         .update({ 
           resume_text: null, 
           resume_file_path: null
-          // Removed the keywords update to preserve them
         })
         .eq("id", userId);
 
