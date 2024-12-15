@@ -7,10 +7,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
 
 interface DeleteResumeDialogProps {
   onDelete: () => void;
@@ -25,16 +22,6 @@ export const DeleteResumeDialog = ({
 }: DeleteResumeDialogProps) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex items-center justify-center gap-2 text-destructive hover:text-destructive-foreground hover:bg-destructive col-span-2"
-        >
-          <Trash2 className="h-4 w-4" />
-          <span>Delete Resume</span>
-        </Button>
-      </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
