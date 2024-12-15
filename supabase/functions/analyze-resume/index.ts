@@ -29,11 +29,17 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: `You are a resume keyword analyzer. Extract only new and relevant keywords from the resume that are not in the existing list: ${existingKeywords.join(', ')}. Focus on skills, technologies, job titles, and notable achievements. Return them as a comma-separated list, with no explanations or additional text. If no new keywords are found, return an empty string.`
+            content: `You are a resume keyword analyzer. Your task is to:
+1. Review the provided resume text
+2. Consider the existing keywords: ${existingKeywords.join(', ')}
+3. Extract additional relevant keywords that are not in the existing list
+4. Focus on skills, technologies, job titles, and notable achievements
+5. Return ONLY new keywords as a comma-separated list, with no explanations or additional text
+6. If no new keywords are found, return an empty string`
           },
           { role: 'user', content: resumeText }
         ],
@@ -61,7 +67,10 @@ serve(async (req) => {
 
     console.log('Final keywords after deduplication:', allKeywords);
 
-    return new Response(JSON.stringify({ keywords: allKeywords.join(', ') }), {
+    return new Response(JSON.stringify({ 
+      keywords: allKeywords.join(', '),
+      newKeywordsCount: newKeywords.length 
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {

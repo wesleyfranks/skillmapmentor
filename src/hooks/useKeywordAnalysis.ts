@@ -15,12 +15,6 @@ export const useKeywordAnalysis = (userId: string) => {
     try {
       console.log('Analyzing resume text:', text.substring(0, 100) + '...');
       console.log('Existing keywords:', existingKeywords);
-      
-      // Check if we already have keywords for this exact text
-      const textHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
-        .then(hash => Array.from(new Uint8Array(hash))
-          .map(b => b.toString(16).padStart(2, '0'))
-          .join(''));
 
       const { data, error } = await supabase.functions.invoke('analyze-resume', {
         body: { 
@@ -85,8 +79,8 @@ export const useKeywordAnalysis = (userId: string) => {
 
       setRetryCount(0);
       
-      // Compare with existing keywords to determine if new ones were found
-      const newKeywordsCount = keywordList.length - existingKeywords.length;
+      // Show appropriate toast based on new keywords found
+      const newKeywordsCount = data.newKeywordsCount || 0;
       
       if (newKeywordsCount > 0) {
         toast({
