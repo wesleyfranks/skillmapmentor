@@ -12,7 +12,7 @@ export const useResumeActions = (userId: string) => {
 
       const { error } = await supabase
         .from("users")
-        .update({ resume_text })
+        .update({ resume_text: resumeText })
         .eq("id", userId);
 
       if (error) throw error;
@@ -35,6 +35,7 @@ export const useResumeActions = (userId: string) => {
         .update({ 
           resume_text: null, 
           resume_file_path: null
+          // Removed the keywords update to preserve them
         })
         .eq("id", userId);
 
