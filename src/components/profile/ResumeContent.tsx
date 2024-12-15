@@ -58,7 +58,7 @@ export const ResumeContent = ({
   if (isEditing) {
     return (
       <>
-        <div className="bg-muted/50 rounded-lg p-4 min-h-[100px] max-h-[500px] overflow-y-auto">
+        <div className="bg-muted/50 rounded-lg p-4">
           <textarea
             ref={textareaRef}
             placeholder="Paste your resume text here..."
@@ -90,7 +90,7 @@ export const ResumeContent = ({
   }
 
   return (
-    <div className="bg-muted/50 rounded-lg p-4 min-h-[100px] max-h-[500px] overflow-y-auto">
+    <div className="bg-muted/50 rounded-lg p-4">
       <pre 
         className="whitespace-pre-wrap font-mono bg-background rounded-md p-4 w-full"
         style={{ 
