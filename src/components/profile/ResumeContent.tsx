@@ -23,15 +23,20 @@ export const ResumeContent = ({
           placeholder="Paste your resume text here..."
           value={resumeText}
           onChange={(e) => onChange(e.target.value)}
-          className="min-h-[300px] font-mono"
+          className="min-h-[300px] font-mono whitespace-pre-wrap"
           style={{ 
-            whiteSpace: 'pre',
-            fontFamily: 'monospace',
-            lineHeight: '1.5',
-            tabSize: '4'
+            padding: "0.25in",
+            width: "8.5in",
+            minHeight: "11in",
+            margin: "0 auto",
+            lineHeight: "1.5",
+            tabSize: "4",
+            border: "1px solid #e2e8f0",
+            backgroundColor: "white",
+            boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
           }}
         />
-        <Button onClick={onSave} disabled={isSaving} className="mt-2">
+        <Button onClick={onSave} disabled={isSaving} className="mt-4">
           {isSaving ? (
             <div className="flex items-center gap-2">
               <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
@@ -47,12 +52,15 @@ export const ResumeContent = ({
 
   return (
     <div 
-      className="whitespace-pre bg-muted p-4 rounded-md min-h-[100px] font-mono"
+      className="whitespace-pre-wrap bg-white rounded-md font-mono mx-auto"
       style={{ 
-        fontFamily: 'monospace',
-        lineHeight: '1.5',
-        tabSize: '4',
-        overflowX: 'auto'
+        padding: "0.25in",
+        width: "8.5in",
+        minHeight: "11in",
+        lineHeight: "1.5",
+        tabSize: "4",
+        border: "1px solid #e2e8f0",
+        boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
       }}
     >
       {resumeText || "No resume text provided"}
