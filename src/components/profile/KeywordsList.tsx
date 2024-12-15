@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, Pencil } from "lucide-react";
+import { X, Pencil, Ban } from "lucide-react";
 
 interface KeywordsListProps {
   keywords: string[];
@@ -10,6 +10,7 @@ interface KeywordsListProps {
   onCancel: () => void;
   onDelete: (index: number) => void;
   onEditingChange: (index: number, value: string) => void;
+  onAddToNonKeywords: (keyword: string) => void;
 }
 
 export const KeywordsList = ({
@@ -20,6 +21,7 @@ export const KeywordsList = ({
   onCancel,
   onDelete,
   onEditingChange,
+  onAddToNonKeywords,
 }: KeywordsListProps) => {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -70,6 +72,15 @@ export const KeywordsList = ({
                   onClick={() => onEdit(index, keyword)}
                 >
                   <Pencil className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={() => onAddToNonKeywords(keyword)}
+                  title="Add to non-keywords list"
+                >
+                  <Ban className="h-3 w-3" />
                 </Button>
                 <Button
                   variant="ghost"

@@ -6,6 +6,7 @@ export const useKeywordAnalysis = (userId: string) => {
   const { toast } = useToast();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [keywords, setKeywords] = useState<string[]>([]);
+  const [nonKeywords, setNonKeywords] = useState<string[]>([]);
   const [retryCount, setRetryCount] = useState(0);
   const MAX_RETRIES = 3;
 
@@ -15,11 +16,13 @@ export const useKeywordAnalysis = (userId: string) => {
     try {
       console.log('Analyzing resume text:', text.substring(0, 100) + '...');
       console.log('Existing keywords:', existingKeywords);
+      console.log('Non-keywords:', nonKeywords);
 
       const { data, error } = await supabase.functions.invoke('analyze-resume', {
         body: { 
           resumeText: text,
-          existingKeywords
+          existingKeywords,
+          nonKeywords
         }
       });
 
@@ -59,13 +62,13 @@ export const useKeywordAnalysis = (userId: string) => {
 
       console.log('Analysis response:', data);
       
-      // Remove duplicates and sort alphabetically
-      const keywordList = Array.from(new Set(
-        (data.keywords as string).split(',')
-          .map((k: string) => k.trim())
-      ))
-        .filter(Boolean)
-        .sort() as string[];
+      // Filter out non-keywords and remove duplicates
+      const filteredKeywords = (data.keywords as string)
+        .split(',')
+        .map(k => k.trim())
+        .filter(k => k && !nonKeywords.includes(k.toLowerCase()));
+      
+      const keywordList = Array.from(new Set(filteredKeywords)).sort();
       
       setKeywords(keywordList);
       
@@ -110,10 +113,44 @@ export const useKeywordAnalysis = (userId: string) => {
     await analyzeResume(resumeText, keywords);
   };
 
+  const addToNonKeywords = async (keyword: string) => {
+    try {
+      const lowercaseKeyword = keyword.toLowerCase();
+      const updatedNonKeywords = [...nonKeywords, lowercaseKeyword];
+      
+      const { error } = await supabase
+        .from("users")
+        .update({ 
+          non_keywords: updatedNonKeywords,
+          keywords: keywords.filter(k => k.toLowerCase() !== lowercaseKeyword)
+        })
+        .eq("id", userId);
+
+      if (error) throw error;
+
+      setNonKeywords(updatedNonKeywords);
+      setKeywords(keywords.filter(k => k.toLowerCase() !== lowercaseKeyword));
+      
+      toast({
+        description: `Added "${keyword}" to non-keywords list.`,
+      });
+    } catch (error) {
+      console.error('Error adding to non-keywords:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add keyword to non-keywords list.",
+      });
+    }
+  };
+
   return {
     isAnalyzing,
     keywords,
+    nonKeywords,
     setKeywords,
-    handleReanalyze
+    setNonKeywords,
+    handleReanalyze,
+    addToNonKeywords
   };
 };

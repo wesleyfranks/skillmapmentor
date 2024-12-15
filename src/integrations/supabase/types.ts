@@ -43,6 +43,7 @@ export type Database = {
           full_name: string | null
           id: string
           keywords: string[] | null
+          non_keywords: string[] | null
           resume_file_path: string | null
           resume_text: string | null
           updated_at: string
@@ -53,6 +54,7 @@ export type Database = {
           full_name?: string | null
           id: string
           keywords?: string[] | null
+          non_keywords?: string[] | null
           resume_file_path?: string | null
           resume_text?: string | null
           updated_at?: string
@@ -63,6 +65,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           keywords?: string[] | null
+          non_keywords?: string[] | null
           resume_file_path?: string | null
           resume_text?: string | null
           updated_at?: string

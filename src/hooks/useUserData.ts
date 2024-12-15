@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-export const useUserData = (userId: string, onResumeLoad: (text: string) => void, onKeywordsLoad?: (keywords: string[]) => void) => {
+export const useUserData = (
+  userId: string, 
+  onResumeLoad: (text: string) => void, 
+  onKeywordsLoad?: (keywords: string[], nonKeywords: string[]) => void
+) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
@@ -33,7 +37,7 @@ export const useUserData = (userId: string, onResumeLoad: (text: string) => void
 
         const { data, error } = await supabase
           .from("users")
-          .select("resume_text, keywords")
+          .select("resume_text, keywords, non_keywords")
           .eq("id", userId)
           .single();
 
@@ -48,9 +52,10 @@ export const useUserData = (userId: string, onResumeLoad: (text: string) => void
           onResumeLoad(data.resume_text);
         }
         
-        if (data?.keywords && onKeywordsLoad) {
-          console.log('Setting initial keywords:', data.keywords);
-          onKeywordsLoad(data.keywords);
+        if (onKeywordsLoad) {
+          console.log('Setting initial keywords:', data?.keywords);
+          console.log('Setting initial non-keywords:', data?.non_keywords);
+          onKeywordsLoad(data?.keywords || [], data?.non_keywords || []);
         }
         
         setRetryCount(0); // Reset on success

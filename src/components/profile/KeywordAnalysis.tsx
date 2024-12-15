@@ -12,6 +12,7 @@ interface KeywordAnalysisProps {
   onReanalyze: () => void;
   onDeleteKeywords?: () => void;
   onUpdateKeywords?: (keywords: string[]) => void;
+  onAddToNonKeywords?: (keyword: string) => void;
 }
 
 export const KeywordAnalysis = ({
@@ -21,6 +22,7 @@ export const KeywordAnalysis = ({
   onReanalyze,
   onDeleteKeywords,
   onUpdateKeywords,
+  onAddToNonKeywords,
 }: KeywordAnalysisProps) => {
   const [editingKeyword, setEditingKeyword] = useState<{ index: number; value: string } | null>(null);
   const [progress, setProgress] = useState(0);
@@ -139,6 +141,7 @@ export const KeywordAnalysis = ({
               onCancel={() => setEditingKeyword(null)}
               onDelete={handleDeleteKeyword}
               onEditingChange={(index, value) => setEditingKeyword({ index, value })}
+              onAddToNonKeywords={onAddToNonKeywords!}
             />
           )}
         </div>

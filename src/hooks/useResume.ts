@@ -10,7 +10,16 @@ export const useResume = (userId: string) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
-  const { isAnalyzing, keywords, setKeywords, handleReanalyze } = useKeywordAnalysis(userId);
+  const { 
+    isAnalyzing, 
+    keywords, 
+    nonKeywords,
+    setKeywords, 
+    setNonKeywords,
+    handleReanalyze,
+    addToNonKeywords 
+  } = useKeywordAnalysis(userId);
+  
   const { saveResume, deleteResume, deleteKeywords } = useResumeActions(userId);
 
   const handleSaveResume = async () => {
@@ -67,10 +76,14 @@ export const useResume = (userId: string) => {
         setResumeText(loadedText);
       }
     },
-    (loadedKeywords) => {
+    (loadedKeywords, loadedNonKeywords) => {
       if (loadedKeywords && loadedKeywords.length > 0) {
         console.log('Setting initial keywords:', loadedKeywords);
         setKeywords(loadedKeywords);
+      }
+      if (loadedNonKeywords && loadedNonKeywords.length > 0) {
+        console.log('Setting initial non-keywords:', loadedNonKeywords);
+        setNonKeywords(loadedNonKeywords);
       }
     }
   );
@@ -91,5 +104,6 @@ export const useResume = (userId: string) => {
     handleResumeTextChange,
     handleReanalyze: () => handleReanalyze(resumeText),
     handleUpdateKeywords,
+    handleAddToNonKeywords: addToNonKeywords,
   };
 };
