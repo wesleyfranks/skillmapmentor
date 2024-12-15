@@ -35,6 +35,16 @@ export const ResumeEditor = ({
         <label className="text-sm font-medium text-muted-foreground">Resume Text</label>
         <div className="flex gap-2">
           <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            disabled={isUploading}
+            onClick={() => document.getElementById('pdf-upload')?.click()}
+          >
+            <Upload className="h-4 w-4" />
+            {isUploading ? "Uploading..." : "Upload PDF"}
+          </Button>
+          <Button
             variant="ghost"
             size="sm"
             onClick={() => onEdit()}
@@ -53,30 +63,18 @@ export const ResumeEditor = ({
         </div>
       </div>
 
-      <div className="flex justify-end mb-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-2"
-          disabled={isUploading}
-          onClick={() => document.getElementById('pdf-upload')?.click()}
-        >
-          <Upload className="h-4 w-4" />
-          {isUploading ? "Uploading..." : "Upload PDF"}
-        </Button>
-        <input
-          type="file"
-          id="pdf-upload"
-          accept=".pdf"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              handleFileUpload(file);
-            }
-          }}
-        />
-      </div>
+      <input
+        type="file"
+        id="pdf-upload"
+        accept=".pdf"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) {
+            handleFileUpload(file);
+          }
+        }}
+      />
 
       <div className="h-[calc(100vh-20rem)] overflow-y-auto">
         <ResumeContent
