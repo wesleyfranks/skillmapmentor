@@ -31,7 +31,8 @@ export const useUserData = (
         const { data, error } = await supabase
           .from('users')
           .select('resume_text, keywords, non_keywords')
-          .eq('id', userId);
+          .eq('id', userId)
+          .maybeSingle();
 
         if (error) {
           console.error('Error fetching user data:', {
@@ -43,31 +44,25 @@ export const useUserData = (
           throw error;
         }
 
-        // Handle case where user exists in auth but not in public.users yet
-        if (!data || data.length === 0) {
-          console.log('No user data found, this is normal for new users');
-          return null;
-        }
-
-        const userData = data[0]; // Get first row since we filtered by user ID
-        
-        if (userData) {
+        if (data) {
           console.log('Successfully received user data:', {
-            hasResumeText: !!userData.resume_text,
-            keywordsCount: userData.keywords?.length,
-            nonKeywordsCount: userData.non_keywords?.length
+            hasResumeText: !!data.resume_text,
+            keywordsCount: data.keywords?.length,
+            nonKeywordsCount: data.non_keywords?.length
           });
           
-          if (userData.resume_text) {
-            onResumeLoad(userData.resume_text);
+          if (data.resume_text) {
+            onResumeLoad(data.resume_text);
           }
           
           if (onKeywordsLoad) {
-            onKeywordsLoad(userData.keywords || [], userData.non_keywords || []);
+            onKeywordsLoad(data.keywords || [], data.non_keywords || []);
           }
+        } else {
+          console.log('No user data found, this is normal for new users');
         }
         
-        return userData;
+        return data;
       } catch (error: any) {
         console.error('Error in fetchUserData:', error);
         toast.error("Could not load your data. Please try refreshing the page.");
