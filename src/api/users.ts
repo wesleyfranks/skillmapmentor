@@ -25,16 +25,23 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
       .eq('id', userId)
       .single();
 
-    if (error?.message?.includes('contains 0 rows')) {
+    // Check for both error message formats that indicate no user found
+    if (error?.message?.includes('contains 0 rows') || error?.message?.includes('The result contains 0 rows')) {
+      console.log('[API] User not found in users table, creating new record');
+      
       const { data: authData } = await supabase.auth.getUser(userId);
       const authUser = authData.user;
       
+      if (!authUser) {
+        throw new Error('Auth user not found');
+      }
+
       const { error: insertError } = await supabase
         .from('users')
         .insert({
           id: userId,
-          email: authUser?.email || '',
-          full_name: authUser?.user_metadata?.full_name || null,
+          email: authUser.email || '',
+          full_name: authUser.user_metadata?.full_name || null,
           keywords: [],
           non_keywords: []
         });
@@ -44,15 +51,21 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
         throw insertError;
       }
 
+      // Fetch the newly created user data
       const { data: newData, error: fetchError } = await supabase
         .from('users')
         .select('resume_text, keywords, non_keywords')
         .eq('id', userId)
         .single();
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error('[API] Error fetching new user:', fetchError);
+        throw fetchError;
+      }
+      
       data = newData;
     } else if (error) {
+      console.error('[API] Error fetching user:', error);
       throw error;
     }
 
