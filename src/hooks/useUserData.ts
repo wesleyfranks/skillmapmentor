@@ -20,6 +20,16 @@ export const useUserData = (userId: string) => {
       try {
         console.log('[useUserData] Attempting to fetch data for user:', userId);
         
+        // Get the current session to verify authentication
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          console.error('[useUserData] No active session found');
+          throw new Error('No active session');
+        }
+
+        console.log('[useUserData] Session found, access token present:', !!session.access_token);
+        
         const { data, error } = await supabase
           .from('users')
           .select('resume_text, keywords, non_keywords')
@@ -48,7 +58,12 @@ export const useUserData = (userId: string) => {
         return data as UserData;
 
       } catch (error: any) {
-        console.error('[useUserData] Error in try/catch:', error);
+        console.error('[useUserData] Error in try/catch:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         toast.error("Failed to load user data");
         throw error;
       }
