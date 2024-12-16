@@ -24,7 +24,7 @@ export const useUserData = (userId: string) => {
           .from('users')
           .select('resume_text, keywords, non_keywords')
           .eq('id', userId)
-          .single();
+          .maybeSingle();  // Changed from single() to maybeSingle()
 
         if (error) {
           console.error('[useUserData] Error fetching data:', error);
@@ -32,15 +32,40 @@ export const useUserData = (userId: string) => {
           throw error;
         }
 
+        // If no data is found, create a new user record
+        if (!data) {
+          console.log('[useUserData] No user found, creating new record');
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert([{ 
+              id: userId,
+              resume_text: null,
+              keywords: [],
+              non_keywords: []
+            }]);
+
+          if (insertError) {
+            console.error('[useUserData] Error creating user:', insertError);
+            toast.error("Failed to initialize user data");
+            throw insertError;
+          }
+
+          return {
+            resume_text: null,
+            keywords: [],
+            non_keywords: []
+          } as UserData;
+        }
+
         console.log('[useUserData] Data fetched successfully:', {
-          hasResumeText: !!data?.resume_text,
-          keywordsCount: data?.keywords?.length
+          hasResumeText: !!data.resume_text,
+          keywordsCount: data.keywords?.length
         });
 
         return {
-          resume_text: data?.resume_text || null,
-          keywords: data?.keywords || [],
-          non_keywords: data?.non_keywords || []
+          resume_text: data.resume_text || null,
+          keywords: data.keywords || [],
+          non_keywords: data.non_keywords || []
         } as UserData;
       } catch (error) {
         console.error('[useUserData] Error in try/catch:', error);
