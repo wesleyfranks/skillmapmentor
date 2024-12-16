@@ -17,18 +17,50 @@ export const useUserData = (userId: string) => {
       }
 
       try {
-        const { data, error } = await supabase
+        // First attempt to get the user data
+        let { data, error } = await supabase
           .from('users')
           .select('resume_text, keywords, non_keywords')
           .eq('id', userId)
           .single();
 
-        if (error) {
+        // If no data found, create the user record
+        if (error?.message?.includes('contains 0 rows')) {
+          console.log('[useUserData] User record not found, creating...');
+          
+          const { data: authUser } = await supabase.auth.getUser(userId);
+          
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert({
+              id: userId,
+              email: authUser.user?.email || '',
+              full_name: authUser.user?.user_metadata?.full_name || null,
+              keywords: [],
+              non_keywords: []
+            });
+
+          if (insertError) {
+            console.error('[useUserData] Error creating user record:', insertError);
+            throw insertError;
+          }
+
+          // Fetch the newly created user data
+          const { data: newData, error: fetchError } = await supabase
+            .from('users')
+            .select('resume_text, keywords, non_keywords')
+            .eq('id', userId)
+            .single();
+
+          if (fetchError) throw fetchError;
+          data = newData;
+        } else if (error) {
           throw error;
         }
 
         return data as UserData;
       } catch (error: any) {
+        console.error('[useUserData] Error:', error);
         toast.error("Failed to load user data");
         throw error;
       }
