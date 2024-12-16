@@ -44,16 +44,24 @@ export const useUserData = (userId: string) => {
           if (error.code === 'PGRST116') {
             console.log('[useUserData] No user found, creating new record');
             
-            // Create new user record
+            // Get user email from auth
+            const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+            
+            if (authError || !authUser?.email) {
+              console.error('[useUserData] Error getting auth user:', authError);
+              toast.error("Failed to initialize user data");
+              throw authError || new Error('No email found for user');
+            }
+
+            // Create new user record with required email field
             const { data: newUser, error: createError } = await supabase
               .from('users')
-              .insert([
-                { 
-                  id: userId,
-                  keywords: [],
-                  non_keywords: []
-                }
-              ])
+              .insert({
+                id: userId,
+                email: authUser.email,
+                keywords: [],
+                non_keywords: []
+              })
               .select()
               .single();
 
