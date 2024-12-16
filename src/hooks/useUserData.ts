@@ -7,7 +7,7 @@ export const useUserData = (
   onResumeLoad: (text: string) => void, 
   onKeywordsLoad?: (keywords: string[], nonKeywords: string[]) => void
 ) => {
-  const { isLoading } = useQuery({
+  const { isLoading, refetch } = useQuery({
     queryKey: ['userData', userId],
     queryFn: async () => {
       if (!userId) {
@@ -21,13 +21,11 @@ export const useUserData = (
           timestamp: new Date().toISOString()
         });
 
-        // First verify we have a valid session
         const { data: sessionData } = await supabase.auth.getSession();
         if (!sessionData.session) {
           throw new Error('No valid session found');
         }
 
-        // Fetch the user data with a single query
         const { data, error } = await supabase
           .from('users')
           .select('resume_text, keywords, non_keywords')
@@ -40,7 +38,6 @@ export const useUserData = (
           throw error;
         }
 
-        // If we have data, call the callbacks
         if (data) {
           console.log('Successfully received user data:', {
             hasResumeText: !!data.resume_text,
@@ -66,9 +63,7 @@ export const useUserData = (
     },
     staleTime: Infinity, // Data won't become stale automatically
     gcTime: 1000 * 60 * 30, // Cache for 30 minutes
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
   });
 
-  return { isLoading };
+  return { isLoading, refetch };
 };

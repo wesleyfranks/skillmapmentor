@@ -22,54 +22,7 @@ export const useResume = (userId: string) => {
   
   const { saveResume, deleteResume, deleteKeywords } = useResumeActions(userId);
 
-  const handleSaveResume = async () => {
-    setIsSaving(true);
-    try {
-      const shouldAnalyze = await saveResume(resumeText);
-      setIsEditing(false);
-
-      if (shouldAnalyze) {
-        await handleReanalyze(resumeText);
-      }
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDeleteResume = async () => {
-    const success = await deleteResume();
-    if (success) {
-      setResumeText("");
-    }
-  };
-
-  const handleDeleteKeywords = async () => {
-    const success = await deleteKeywords();
-    if (success) {
-      setKeywords([]);
-    }
-  };
-
-  const handleResumeTextChange = (text: string) => {
-    setResumeText(text);
-  };
-
-  const handleUpdateKeywords = async (newKeywords: string[]) => {
-    try {
-      const { error } = await supabase
-        .from("users")
-        .update({ keywords: newKeywords })
-        .eq("id", userId);
-
-      if (error) throw error;
-      setKeywords(newKeywords);
-    } catch (error) {
-      console.error("Error updating keywords:", error);
-      toast.error("Failed to update keywords");
-    }
-  };
-
-  const { isLoading } = useUserData(
+  const { isLoading, refetch } = useUserData(
     userId, 
     (loadedText) => {
       if (loadedText) {
@@ -87,6 +40,62 @@ export const useResume = (userId: string) => {
       }
     }
   );
+
+  const handleSaveResume = async () => {
+    setIsSaving(true);
+    try {
+      const shouldAnalyze = await saveResume(resumeText);
+      setIsEditing(false);
+
+      if (shouldAnalyze) {
+        await handleReanalyze(resumeText);
+      }
+      
+      // Refetch user data after saving
+      await refetch();
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteResume = async () => {
+    const success = await deleteResume();
+    if (success) {
+      setResumeText("");
+      // Refetch user data after deleting
+      await refetch();
+    }
+  };
+
+  const handleDeleteKeywords = async () => {
+    const success = await deleteKeywords();
+    if (success) {
+      setKeywords([]);
+      // Refetch user data after deleting keywords
+      await refetch();
+    }
+  };
+
+  const handleResumeTextChange = (text: string) => {
+    setResumeText(text);
+  };
+
+  const handleUpdateKeywords = async (newKeywords: string[]) => {
+    try {
+      const { error } = await supabase
+        .from("users")
+        .update({ keywords: newKeywords })
+        .eq("id", userId);
+
+      if (error) throw error;
+      setKeywords(newKeywords);
+      // Refetch user data after updating keywords
+      await refetch();
+    } catch (error) {
+      console.error("Error updating keywords:", error);
+      toast.error("Failed to update keywords");
+    }
+  };
 
   return {
     resumeText,
