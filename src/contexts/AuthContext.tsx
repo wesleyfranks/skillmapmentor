@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { signIn, signUp, signOut } from "@/api/auth";
 
 interface AuthContextType {
   session: Session | null;
@@ -18,18 +18,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
+    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('[Auth] Auth state changed:', { event: _event, userId: session?.user?.id });
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -38,77 +40,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Error signing in",
-        description: error.message,
-      });
-      throw error;
-    }
-
-    if (data?.user) {
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
-      });
-    }
+  const handleSignIn = async (email: string, password: string) => {
+    const { error } = await signIn(email, password);
+    if (error) throw error;
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-        },
-      },
-    });
-
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Error signing up",
-        description: error.message,
-      });
-      throw error;
-    }
-
-    if (data?.user) {
-      toast({
-        title: "Welcome!",
-        description: "Your account has been created successfully.",
-      });
-    }
+  const handleSignUp = async (email: string, password: string, fullName: string) => {
+    const { error } = await signUp(email, password, fullName);
+    if (error) throw error;
   };
 
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Error signing out",
-        description: error.message,
-      });
-      throw error;
-    }
-    
-    toast({
-      title: "Signed out",
-      description: "You have been signed out successfully.",
-    });
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) throw error;
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, signIn, signUp, signOut, loading }}>
+    <AuthContext.Provider 
+      value={{ 
+        session, 
+        user, 
+        signIn: handleSignIn, 
+        signUp: handleSignUp, 
+        signOut: handleSignOut, 
+        loading 
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

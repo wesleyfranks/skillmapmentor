@@ -10,15 +10,7 @@ export interface UserData {
 export const getUserData = async (userId: string): Promise<UserData | null> => {
   try {
     console.log('[API] Fetching user data for:', userId);
-    const { data: sessionData } = await supabase.auth.getSession();
-    const session = sessionData.session;
     
-    console.log('[API] Session user:', {
-      currentUserId: session?.user?.id,
-      requestedUserId: userId,
-      match: session?.user?.id === userId
-    });
-
     let { data, error } = await supabase
       .from('users')
       .select('resume_text, keywords, non_keywords')
@@ -77,6 +69,7 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
   }
 };
 
+// Resume operations
 export const updateUserResume = async (userId: string, resumeText: string | null) => {
   try {
     const { error } = await supabase
@@ -93,6 +86,7 @@ export const updateUserResume = async (userId: string, resumeText: string | null
   }
 };
 
+// Keywords operations
 export const updateUserKeywords = async (userId: string, keywords: string[]) => {
   try {
     const { error } = await supabase
