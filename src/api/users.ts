@@ -26,6 +26,12 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
       return null;
     }
 
+    console.log('[API] Session found:', {
+      userId: sessionData.session.user.id,
+      requestedUserId: userId,
+      accessToken: sessionData.session.access_token.slice(0, 10) + '...'
+    });
+
     // Get the user data with proper select parameter
     const { data: userData, error: fetchError } = await supabase
       .from('users')
@@ -43,8 +49,9 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
       throw fetchError;
     }
 
+    console.log('[API] User data response:', userData);
+
     // If no user data found, return default empty state
-    // We don't create users here anymore since they should be created during signup
     if (!userData) {
       console.log('[API] No user data found for authenticated user');
       return {
