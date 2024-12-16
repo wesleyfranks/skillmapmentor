@@ -20,36 +20,40 @@ export const useUserData = (userId: string) => {
       try {
         console.log('[useUserData] Attempting to fetch data for user:', userId);
         
-        // Get the current session to verify authentication
-        const { data: { session } } = await supabase.auth.getSession();
+        // First, verify the session is valid
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
         
-        if (!session) {
+        if (sessionError) {
+          console.error('[useUserData] Session error:', sessionError.message);
+          throw new Error('Authentication error');
+        }
+
+        if (!sessionData.session) {
           console.error('[useUserData] No active session found');
           throw new Error('No active session');
         }
 
-        console.log('[useUserData] Session found, access token present:', !!session.access_token);
-        
-        const { data, error } = await supabase
+        // Log authentication status (without sensitive data)
+        console.log('[useUserData] User authenticated:', !!sessionData.session);
+
+        // Make a single query to fetch user data
+        const { data, error: queryError } = await supabase
           .from('users')
           .select('resume_text, keywords, non_keywords')
           .eq('id', userId)
           .single();
 
-        if (error) {
-          if (error.code === 'PGRST116') {
+        // Handle query errors
+        if (queryError) {
+          if (queryError.code === 'PGRST116') {
             console.error('[useUserData] No matching row found for user:', userId);
-            console.error('[useUserData] This might be due to:');
-            console.error('- User not properly authenticated');
-            console.error('- Row Level Security blocking access');
-            console.error('- No record exists for this user ID');
-          } else {
-            console.error('[useUserData] Database error:', error);
+            throw new Error('User data not found');
           }
-          throw error;
+          throw queryError;
         }
 
-        console.log('[useUserData] Successfully fetched data:', {
+        // Log success (without sensitive data)
+        console.log('[useUserData] Data fetched successfully:', {
           hasResumeText: !!data?.resume_text,
           keywordsCount: data?.keywords?.length || 0,
           nonKeywordsCount: data?.non_keywords?.length || 0
@@ -58,19 +62,23 @@ export const useUserData = (userId: string) => {
         return data as UserData;
 
       } catch (error: any) {
-        console.error('[useUserData] Error in try/catch:', {
+        // Log error details (without sensitive data)
+        console.error('[useUserData] Error:', {
+          code: error.code,
           message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
+          hint: error?.hint
         });
+        
         toast.error("Failed to load user data");
         throw error;
       }
     },
-    retry: 1,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30,   // 30 minutes
+    retry: (failureCount, error: any) => {
+      // Only retry on network errors, not on auth or data errors
+      return failureCount < 2 && !error.message.includes('No active session');
+    },
+    staleTime: 1000 * 60 * 5, // Cache data for 5 minutes
+    gcTime: 1000 * 60 * 30,   // Keep unused data for 30 minutes
     refetchOnWindowFocus: false
   });
 };
