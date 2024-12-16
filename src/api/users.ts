@@ -16,7 +16,12 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
       .from('users')
       .select('resume_text, keywords, non_keywords')
       .eq('id', userId)
-      .maybeSingle(); // Use maybeSingle() instead of single() to handle no rows gracefully
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('[API] Error fetching user:', fetchError);
+      throw fetchError;
+    }
 
     // If no user found, create one
     if (!userData) {
@@ -34,16 +39,17 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
         throw new Error('Auth user not found');
       }
 
-      // Insert new user
+      const newUser = {
+        id: userId,
+        email: authUser.email || '',
+        full_name: authUser.user_metadata?.full_name || null,
+        keywords: [],
+        non_keywords: []
+      };
+
       const { error: insertError } = await supabase
         .from('users')
-        .insert({
-          id: userId,
-          email: authUser.email || '',
-          full_name: authUser.user_metadata?.full_name || null,
-          keywords: [],
-          non_keywords: []
-        });
+        .insert([newUser]);
 
       if (insertError) {
         console.error('[API] Error creating user:', insertError);
@@ -56,11 +62,6 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
         keywords: [],
         non_keywords: []
       };
-    }
-
-    if (fetchError) {
-      console.error('[API] Error fetching user:', fetchError);
-      throw fetchError;
     }
 
     return userData as UserData;
