@@ -22,9 +22,9 @@ export const useUserData = (userId: string) => {
         
         const { data, error } = await supabase
           .from('users')
-          .select('resume_text, keywords, non_keywords')
+          .select('resume_text, keywords, non_keywords, email')
           .eq('id', userId)
-          .maybeSingle();  // Changed from single() to maybeSingle()
+          .maybeSingle();
 
         if (error) {
           console.error('[useUserData] Error fetching data:', error);
@@ -35,14 +35,25 @@ export const useUserData = (userId: string) => {
         // If no data is found, create a new user record
         if (!data) {
           console.log('[useUserData] No user found, creating new record');
+          
+          // First, get the user's email from auth
+          const { data: authUser, error: authError } = await supabase.auth.getUser(userId);
+          
+          if (authError || !authUser.user?.email) {
+            console.error('[useUserData] Error getting auth user:', authError);
+            toast.error("Failed to initialize user data");
+            throw authError;
+          }
+
           const { error: insertError } = await supabase
             .from('users')
-            .insert([{ 
+            .insert({
               id: userId,
+              email: authUser.user.email,
               resume_text: null,
               keywords: [],
               non_keywords: []
-            }]);
+            });
 
           if (insertError) {
             console.error('[useUserData] Error creating user:', insertError);
