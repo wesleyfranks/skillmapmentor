@@ -61,7 +61,6 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
   }
 };
 
-// Resume operations
 export const updateUserResume = async (userId: string, resumeText: string | null) => {
   try {
     const { error } = await supabase
