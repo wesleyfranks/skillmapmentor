@@ -7,7 +7,7 @@ export const useUserData = (
   onResumeLoad: (text: string) => void, 
   onKeywordsLoad?: (keywords: string[], nonKeywords: string[]) => void
 ) => {
-  const { data, isLoading, refetch } = useQuery({
+  return useQuery({
     queryKey: ['userData', userId],
     queryFn: async () => {
       if (!userId) {
@@ -34,19 +34,21 @@ export const useUserData = (
 
         console.log('[useUserData][queryFn] Query response:', {
           hasData: !!data,
-          data
+          hasResumeText: !!data?.resume_text,
+          keywordsCount: data?.keywords?.length || 0,
+          nonKeywordsCount: data?.non_keywords?.length || 0
         });
 
+        // Only call callbacks if we have data
         if (data) {
           if (data.resume_text) {
-            console.log('[useUserData][queryFn] Found resume text:', {
-              textLength: data.resume_text.length
-            });
+            console.log('[useUserData][queryFn] Calling onResumeLoad with text length:', 
+              data.resume_text.length);
             onResumeLoad(data.resume_text);
           }
 
           if (onKeywordsLoad) {
-            console.log('[useUserData][queryFn] Found keywords:', {
+            console.log('[useUserData][queryFn] Calling onKeywordsLoad with:', {
               keywordsCount: data.keywords?.length || 0,
               nonKeywordsCount: data.non_keywords?.length || 0
             });
@@ -55,8 +57,6 @@ export const useUserData = (
               data.non_keywords || []
             );
           }
-        } else {
-          console.log('[useUserData][queryFn] No data found for user');
         }
 
         return data;
@@ -71,6 +71,4 @@ export const useUserData = (
     refetchOnMount: true,
     refetchOnWindowFocus: false
   });
-
-  return { data, isLoading, refetch };
 };
