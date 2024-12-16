@@ -32,12 +32,7 @@ export const useUserData = (userId: string) => {
           throw error;
         }
 
-        // Return the user data with fallbacks for null values
-        return {
-          resume_text: data?.resume_text || null,
-          keywords: data?.keywords || [],
-          non_keywords: data?.non_keywords || []
-        } as UserData;
+        return data as UserData;
 
       } catch (error: any) {
         console.error('[useUserData] Error in try/catch:', error);
