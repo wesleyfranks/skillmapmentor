@@ -18,7 +18,7 @@ export const useUserData = (userId: string) => {
       }
 
       try {
-        console.log('[useUserData] Fetching data for user:', userId);
+        console.log('[useUserData] Attempting to fetch data for user:', userId);
         
         const { data, error } = await supabase
           .from('users')
@@ -27,10 +27,23 @@ export const useUserData = (userId: string) => {
           .single();
 
         if (error) {
-          console.error('[useUserData] Error fetching data:', error);
-          toast.error("Failed to load user data");
+          if (error.code === 'PGRST116') {
+            console.error('[useUserData] No matching row found for user:', userId);
+            console.error('[useUserData] This might be due to:');
+            console.error('- User not properly authenticated');
+            console.error('- Row Level Security blocking access');
+            console.error('- No record exists for this user ID');
+          } else {
+            console.error('[useUserData] Database error:', error);
+          }
           throw error;
         }
+
+        console.log('[useUserData] Successfully fetched data:', {
+          hasResumeText: !!data?.resume_text,
+          keywordsCount: data?.keywords?.length || 0,
+          nonKeywordsCount: data?.non_keywords?.length || 0
+        });
 
         return data as UserData;
 
