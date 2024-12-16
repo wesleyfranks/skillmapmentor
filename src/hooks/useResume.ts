@@ -13,7 +13,6 @@ export const useResume = (userId: string) => {
   const { data: userData, isLoading, refetch } = useUserData(userId);
   const { saveResume, deleteResume, deleteKeywords } = useResumeActions(userId);
 
-  // Handle initial analysis if needed
   const handleInitialAnalysis = async (text: string) => {
     if (!hasInitialAnalysis && text && (!userData?.keywords || userData.keywords.length === 0)) {
       console.log('[useResume] Starting initial analysis');
@@ -27,8 +26,9 @@ export const useResume = (userId: string) => {
     }
   };
 
-  const handleReanalyze = async (text: string) => {
-    if (!text || isAnalyzing) return;
+  const handleReanalyze = async (text?: string) => {
+    const textToAnalyze = text || userData?.resume_text;
+    if (!textToAnalyze || isAnalyzing) return;
     
     console.log('[useResume] Starting reanalysis');
     setIsAnalyzing(true);
@@ -36,7 +36,7 @@ export const useResume = (userId: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('analyze-resume', {
         body: { 
-          resumeText: text,
+          resumeText: textToAnalyze,
           existingKeywords: userData?.keywords || [],
           nonKeywords: userData?.non_keywords || []
         }
@@ -137,7 +137,7 @@ export const useResume = (userId: string) => {
       // This will be handled by the form directly
       console.log('[useResume] Text changed:', { length: text.length });
     },
-    handleReanalyze: () => handleReanalyze(userData?.resume_text || ""),
+    handleReanalyze: () => handleReanalyze(userData?.resume_text),
     handleUpdateKeywords,
   };
 };

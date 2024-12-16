@@ -20,7 +20,6 @@ const Profile = () => {
     isAnalyzing,
     keywords,
     isLoading,
-    setKeywords,
     setIsEditing,
     handleSaveResume,
     handleDeleteResume,
@@ -49,7 +48,7 @@ const Profile = () => {
                     isEditing={isEditing}
                     isSaving={isSaving}
                     onEdit={() => setIsEditing(!isEditing)}
-                    onSave={handleSaveResume}
+                    onSave={() => handleSaveResume(resumeText)}
                     onDelete={handleDeleteResume}
                     onChange={handleResumeTextChange}
                     userId={user.id}
