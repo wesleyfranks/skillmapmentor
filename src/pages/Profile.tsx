@@ -51,7 +51,7 @@ const Profile = () => {
           
           {!isLoading && (
             <div className="flex flex-col lg:flex-row gap-8">
-              <div className="flex-1 min-h-[500px] order-1 lg:order-none">
+              <div className="flex-1 order-1 lg:order-none">
                 <h2 className="text-2xl font-bold text-center mb-6">Keywords</h2>
                 <div className="h-full">
                   <KeywordAnalysis
@@ -65,7 +65,7 @@ const Profile = () => {
                 </div>
               </div>
 
-              <div className="flex-1 min-h-[500px]">
+              <div className="flex-1">
                 <h2 className="text-2xl font-bold text-center mb-6">Resume</h2>
                 <div className="h-full">
                   <ResumeEditor
