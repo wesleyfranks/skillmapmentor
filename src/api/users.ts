@@ -10,7 +10,9 @@ export interface UserData {
 export const getUserData = async (userId: string): Promise<UserData | null> => {
   try {
     console.log('[API] Fetching user data for:', userId);
-    const { data: session } = await supabase.auth.getSession();
+    const { data: sessionData } = await supabase.auth.getSession();
+    const session = sessionData.session;
+    
     console.log('[API] Session user:', {
       currentUserId: session?.user?.id,
       requestedUserId: userId,
@@ -24,14 +26,15 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
       .single();
 
     if (error?.message?.includes('contains 0 rows')) {
-      const { data: authUser } = await supabase.auth.getUser(userId);
+      const { data: authData } = await supabase.auth.getUser(userId);
+      const authUser = authData.user;
       
       const { error: insertError } = await supabase
         .from('users')
         .insert({
           id: userId,
-          email: authUser.user?.email || '',
-          full_name: authUser.user?.user_metadata?.full_name || null,
+          email: authUser?.email || '',
+          full_name: authUser?.user_metadata?.full_name || null,
           keywords: [],
           non_keywords: []
         });
