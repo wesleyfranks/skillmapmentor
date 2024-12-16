@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useKeywordAnalysis } from "./useKeywordAnalysis";
 import { useResumeActions } from "./useResumeActions";
 import { useUserData } from "./useUserData";
@@ -57,8 +57,14 @@ export const useResume = (userId: string) => {
   );
 
   // Initialize state from data when it loads
-  useState(() => {
+  useEffect(() => {
     if (data) {
+      console.log('[useResume][Profile][useEffect] Initializing state from data:', {
+        hasResumeText: !!data.resume_text,
+        keywordsCount: data.keywords?.length,
+        nonKeywordsCount: data.non_keywords?.length
+      });
+
       if (data.resume_text) {
         setResumeText(data.resume_text);
       }
