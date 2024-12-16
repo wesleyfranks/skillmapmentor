@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { KeywordsList } from "./KeywordsList";
 import { KeywordsToolbar } from "./KeywordsToolbar";
+import { FileX } from "lucide-react";
 
 interface KeywordAnalysisProps {
   resumeText: string;
@@ -104,12 +105,16 @@ export const KeywordAnalysis = ({
 
   if (!isAnalyzing && keywords.length === 0) {
     return (
-      <div className="w-full">
+      <div className="flex flex-col items-center justify-center space-y-4 h-[300px] border border-dashed border-gray-300 rounded-lg bg-gray-50">
+        <FileX className="w-12 h-12 text-gray-400" />
+        <p className="text-lg font-semibold text-gray-500 uppercase tracking-wide">
+          No Keywords Available
+        </p>
         <button
           onClick={onReanalyze}
           className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
         >
-          Analyze
+          Analyze Resume
         </button>
       </div>
     );
