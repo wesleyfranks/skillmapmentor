@@ -27,6 +27,32 @@ export const useUserData = (userId: string) => {
           .single();
 
         if (error) {
+          // If the error is that no rows were found, create a new user record
+          if (error.code === 'PGRST116') {
+            console.log('[useUserData] No user record found, creating one');
+            const { data: newUser, error: insertError } = await supabase
+              .from('users')
+              .insert([{ 
+                id: userId,
+                keywords: [],
+                non_keywords: []
+              }])
+              .select()
+              .single();
+
+            if (insertError) {
+              console.error('[useUserData] Error creating user record:', insertError);
+              toast.error("Failed to initialize user data");
+              throw insertError;
+            }
+
+            return {
+              resume_text: null,
+              keywords: [],
+              non_keywords: []
+            } as UserData;
+          }
+
           console.error('[useUserData] Error fetching data:', error);
           toast.error("Failed to load user data");
           throw error;
