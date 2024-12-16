@@ -102,6 +102,19 @@ export const KeywordAnalysis = ({
 
   if (!resumeText) return null;
 
+  if (!isAnalyzing && keywords.length === 0) {
+    return (
+      <div className="w-full">
+        <button
+          onClick={onReanalyze}
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+        >
+          Analyze
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="w-full">
@@ -115,54 +128,39 @@ export const KeywordAnalysis = ({
             onDeleteAll={onDeleteKeywords}
           />
         )}
-        {!keywords.length && (
-          <button
-            onClick={onReanalyze}
-            disabled={isAnalyzing}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
-          >
-            {isAnalyzing ? "Analyzing..." : "Analyze"}
-          </button>
-        )}
       </div>
 
-      {(isAnalyzing || keywords.length > 0) ? (
-        <div className="bg-muted/50 rounded-lg p-4 min-h-[100px] max-h-[500px] overflow-y-auto">
-          {isAnalyzing && (
-            <div className="space-y-4">
-              <Progress value={progress} className="w-full" />
-              <div className="text-sm text-muted-foreground">
-                {progress < 30 && "Initializing analysis..."}
-                {progress >= 30 && progress < 70 && "Processing resume content..."}
-                {progress >= 70 && progress < 90 && "Extracting keywords..."}
-                {progress >= 90 && "Finalizing results..."}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-6 w-20" />
-                ))}
-              </div>
+      <div className="bg-muted/50 rounded-lg p-4 min-h-[100px] max-h-[500px] overflow-y-auto">
+        {isAnalyzing && (
+          <div className="space-y-4">
+            <Progress value={progress} className="w-full" />
+            <div className="text-sm text-muted-foreground">
+              {progress < 30 && "Initializing analysis..."}
+              {progress >= 30 && progress < 70 && "Processing resume content..."}
+              {progress >= 70 && progress < 90 && "Extracting keywords..."}
+              {progress >= 90 && "Finalizing results..."}
             </div>
-          )}
+            <div className="flex flex-wrap gap-2">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-6 w-20" />
+              ))}
+            </div>
+          </div>
+        )}
 
-          {keywords.length > 0 && !isAnalyzing && (
-            <KeywordsList
-              keywords={keywords}
-              editingKeyword={editingKeyword}
-              onEdit={handleEditKeyword}
-              onSave={handleSaveKeyword}
-              onCancel={() => setEditingKeyword(null)}
-              onDelete={handleDeleteKeyword}
-              onEditingChange={(index, value) => setEditingKeyword({ index, value })}
-              onAddToNonKeywords={onAddToNonKeywords!}
-            />
-          )}
-        </div>
-      ) : (
-        <div className="bg-muted/50 rounded-lg p-4 text-center text-muted-foreground min-h-[100px]">
-          <p>No keywords found yet. Click "Analyze" to extract keywords from your resume.</p>
-        </div>
-      )}
+        {keywords.length > 0 && !isAnalyzing && (
+          <KeywordsList
+            keywords={keywords}
+            editingKeyword={editingKeyword}
+            onEdit={handleEditKeyword}
+            onSave={handleSaveKeyword}
+            onCancel={() => setEditingKeyword(null)}
+            onDelete={handleDeleteKeyword}
+            onEditingChange={(index, value) => setEditingKeyword({ index, value })}
+            onAddToNonKeywords={onAddToNonKeywords!}
+          />
+        )}
+      </div>
     </div>
   );
 };
