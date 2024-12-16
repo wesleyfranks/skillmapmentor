@@ -17,6 +17,14 @@ export const useUserData = (userId: string) => {
       }
 
       try {
+        // Log the current auth state
+        const { data: currentSession } = await supabase.auth.getSession();
+        console.log('[useUserData] Current auth session:', {
+          sessionUserId: currentSession?.session?.user?.id,
+          requestedUserId: userId,
+          isMatch: currentSession?.session?.user?.id === userId
+        });
+
         // First attempt to get the user data
         let { data, error } = await supabase
           .from('users')
@@ -24,11 +32,22 @@ export const useUserData = (userId: string) => {
           .eq('id', userId)
           .single();
 
+        console.log('[useUserData] Initial query result:', {
+          hasData: !!data,
+          error: error?.message,
+          userId
+        });
+
         // If no data found, create the user record
         if (error?.message?.includes('contains 0 rows')) {
           console.log('[useUserData] User record not found, creating...');
           
           const { data: authUser } = await supabase.auth.getUser(userId);
+          console.log('[useUserData] Auth user data:', {
+            authUserId: authUser?.user?.id,
+            authUserEmail: authUser?.user?.email,
+            metadata: authUser?.user?.user_metadata
+          });
           
           const { error: insertError } = await supabase
             .from('users')
@@ -54,6 +73,11 @@ export const useUserData = (userId: string) => {
 
           if (fetchError) throw fetchError;
           data = newData;
+          
+          console.log('[useUserData] New user record created:', {
+            userId,
+            hasData: !!newData
+          });
         } else if (error) {
           throw error;
         }
