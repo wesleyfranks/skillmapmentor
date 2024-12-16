@@ -25,6 +25,7 @@ export const useResume = (userId: string) => {
   const { isLoading, refetch } = useUserData(
     userId, 
     (loadedText) => {
+      console.log('Setting resume text from loaded data:', loadedText);
       if (loadedText) {
         setResumeText(loadedText);
       }
@@ -51,7 +52,6 @@ export const useResume = (userId: string) => {
         await handleReanalyze(resumeText);
       }
       
-      // Refetch user data after saving
       await refetch();
     } finally {
       setIsSaving(false);
@@ -62,7 +62,6 @@ export const useResume = (userId: string) => {
     const success = await deleteResume();
     if (success) {
       setResumeText("");
-      // Refetch user data after deleting
       await refetch();
     }
   };
@@ -71,7 +70,6 @@ export const useResume = (userId: string) => {
     const success = await deleteKeywords();
     if (success) {
       setKeywords([]);
-      // Refetch user data after deleting keywords
       await refetch();
     }
   };
@@ -89,7 +87,6 @@ export const useResume = (userId: string) => {
 
       if (error) throw error;
       setKeywords(newKeywords);
-      // Refetch user data after updating keywords
       await refetch();
     } catch (error) {
       console.error("Error updating keywords:", error);

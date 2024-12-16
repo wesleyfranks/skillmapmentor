@@ -21,11 +21,6 @@ export const useUserData = (
           timestamp: new Date().toISOString()
         });
 
-        const { data: sessionData } = await supabase.auth.getSession();
-        if (!sessionData.session) {
-          throw new Error('No valid session found');
-        }
-
         const { data, error } = await supabase
           .from('users')
           .select('resume_text, keywords, non_keywords')
@@ -49,7 +44,7 @@ export const useUserData = (
             onResumeLoad(data.resume_text);
           }
 
-          if (onKeywordsLoad) {
+          if (onKeywordsLoad && (data.keywords || data.non_keywords)) {
             onKeywordsLoad(data.keywords || [], data.non_keywords || []);
           }
         }
