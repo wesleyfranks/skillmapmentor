@@ -18,51 +18,42 @@ export const useUserData = (
       try {
         console.log('[useUserData][queryFn] Fetching user data:', {
           userId,
-          timestamp: new Date().toISOString(),
-          source: 'cache or network'
+          timestamp: new Date().toISOString()
         });
 
         const { data, error } = await supabase
           .from('users')
           .select('resume_text, keywords, non_keywords')
           .eq('id', userId)
-          .limit(1)
-          .maybeSingle();
-
-        console.log('[useUserData][queryFn] Query response:', {
-          hasData: !!data,
-          hasError: !!error,
-          error: error?.message,
-          data
-        });
+          .single();
 
         if (error) {
           console.error('[useUserData][queryFn] Error fetching user data:', error);
           throw error;
         }
 
-        if (data) {
-          console.log('[useUserData][queryFn] Successfully received user data:', {
-            hasResumeText: !!data.resume_text,
-            keywordsCount: data.keywords?.length,
-            nonKeywordsCount: data.non_keywords?.length,
-            source: 'database'
-          });
+        console.log('[useUserData][queryFn] Query response:', {
+          hasData: !!data,
+          data
+        });
 
-          // Only call callbacks if we actually have data
+        if (data) {
           if (data.resume_text) {
-            console.log('[useUserData][queryFn] Calling onResumeLoad with text:', {
+            console.log('[useUserData][queryFn] Found resume text:', {
               textLength: data.resume_text.length
             });
             onResumeLoad(data.resume_text);
           }
 
-          if (onKeywordsLoad && (data.keywords || data.non_keywords)) {
-            console.log('[useUserData][queryFn] Calling onKeywordsLoad with:', {
+          if (onKeywordsLoad) {
+            console.log('[useUserData][queryFn] Found keywords:', {
               keywordsCount: data.keywords?.length || 0,
               nonKeywordsCount: data.non_keywords?.length || 0
             });
-            onKeywordsLoad(data.keywords || [], data.non_keywords || []);
+            onKeywordsLoad(
+              data.keywords || [], 
+              data.non_keywords || []
+            );
           }
         } else {
           console.log('[useUserData][queryFn] No data found for user');
@@ -77,8 +68,8 @@ export const useUserData = (
     },
     staleTime: 1000 * 60 * 5, // Data becomes stale after 5 minutes
     gcTime: 1000 * 60 * 30, // Cache for 30 minutes
-    refetchOnMount: true, // Refetch when component mounts
-    refetchOnWindowFocus: false // Don't refetch on window focus
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
   });
 
   return { data, isLoading, refetch };
