@@ -71,7 +71,7 @@ export const useUserData = (
       }
     },
     staleTime: Infinity, // Data won't become stale automatically
-    cacheTime: 1000 * 60 * 30, // Cache for 30 minutes
+    gcTime: 1000 * 60 * 30, // Cache for 30 minutes
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
   });
