@@ -14,75 +14,48 @@ export const useUserData = (
         console.log('No userId provided');
         return null;
       }
-      
+
       try {
         console.log('Fetching user data:', {
           userId,
           timestamp: new Date().toISOString()
         });
 
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError || !session) {
-          console.error('No valid session found');
-          throw new Error('No valid session');
+        // First verify we have a valid session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          throw new Error('No valid session found');
         }
 
-        // First try to get the existing user data
+        // Fetch the user data
         const { data, error } = await supabase
           .from('users')
           .select('resume_text, keywords, non_keywords')
           .eq('id', userId)
-          .maybeSingle();
+          .single();
 
-        if (error && error.code !== 'PGRST116') {
+        if (error) {
           console.error('Error fetching user data:', error);
           throw error;
         }
 
-        // If no data exists, create a new user record
-        if (!data) {
-          console.log('No user data found, creating new user record');
-          
-          // First check if the user exists in auth.users
-          const { data: authUser } = await supabase.auth.getUser();
-          
-          if (!authUser?.user) {
-            throw new Error('No authenticated user found');
+        // If we have data, call the callbacks
+        if (data) {
+          console.log('Successfully received user data:', {
+            hasResumeText: !!data.resume_text,
+            keywordsCount: data.keywords?.length,
+            nonKeywordsCount: data.non_keywords?.length
+          });
+
+          if (data.resume_text) {
+            onResumeLoad(data.resume_text);
           }
 
-          const { data: newUser, error: insertError } = await supabase
-            .from('users')
-            .upsert({
-              id: userId,
-              email: authUser.user.email,
-              full_name: authUser.user.user_metadata?.full_name
-            })
-            .select('resume_text, keywords, non_keywords')
-            .single();
-
-          if (insertError) {
-            console.error('Error creating new user record:', insertError);
-            throw insertError;
+          if (onKeywordsLoad) {
+            onKeywordsLoad(data.keywords || [], data.non_keywords || []);
           }
-
-          return newUser;
         }
 
-        console.log('Successfully received user data:', {
-          hasResumeText: !!data?.resume_text,
-          keywordsCount: data?.keywords?.length,
-          nonKeywordsCount: data?.non_keywords?.length
-        });
-        
-        if (data?.resume_text) {
-          onResumeLoad(data.resume_text);
-        }
-        
-        if (onKeywordsLoad && data) {
-          onKeywordsLoad(data.keywords || [], data.non_keywords || []);
-        }
-        
         return data;
       } catch (error: any) {
         console.error('Error in fetchUserData:', error);
