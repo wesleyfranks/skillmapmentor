@@ -11,23 +11,30 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
   try {
     console.log('[API] Fetching user data for:', userId);
     
-    let { data, error } = await supabase
+    // First try to get the user data
+    const { data: userData, error: fetchError } = await supabase
       .from('users')
       .select('resume_text, keywords, non_keywords')
       .eq('id', userId)
-      .single();
+      .maybeSingle(); // Use maybeSingle() instead of single() to handle no rows gracefully
 
-    // Check for both error message formats that indicate no user found
-    if (error?.message?.includes('contains 0 rows') || error?.message?.includes('The result contains 0 rows')) {
+    // If no user found, create one
+    if (!userData) {
       console.log('[API] User not found in users table, creating new record');
       
-      const { data: authData } = await supabase.auth.getUser(userId);
-      const authUser = authData.user;
+      const { data: authData, error: authError } = await supabase.auth.getUser();
       
+      if (authError) {
+        console.error('[API] Error getting auth user:', authError);
+        throw authError;
+      }
+
+      const authUser = authData.user;
       if (!authUser) {
         throw new Error('Auth user not found');
       }
 
+      // Insert new user
       const { error: insertError } = await supabase
         .from('users')
         .insert({
@@ -43,25 +50,20 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
         throw insertError;
       }
 
-      // Fetch the newly created user data
-      const { data: newData, error: fetchError } = await supabase
-        .from('users')
-        .select('resume_text, keywords, non_keywords')
-        .eq('id', userId)
-        .single();
-
-      if (fetchError) {
-        console.error('[API] Error fetching new user:', fetchError);
-        throw fetchError;
-      }
-      
-      data = newData;
-    } else if (error) {
-      console.error('[API] Error fetching user:', error);
-      throw error;
+      // Return default data for new user
+      return {
+        resume_text: null,
+        keywords: [],
+        non_keywords: []
+      };
     }
 
-    return data as UserData;
+    if (fetchError) {
+      console.error('[API] Error fetching user:', fetchError);
+      throw fetchError;
+    }
+
+    return userData as UserData;
   } catch (error: any) {
     console.error('[API] Error:', error);
     toast.error("Failed to load user data");
