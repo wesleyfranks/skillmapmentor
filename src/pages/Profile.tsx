@@ -5,7 +5,6 @@ import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ResumeEditor } from "@/components/profile/ResumeEditor";
 import { KeywordAnalysis } from "@/components/profile/KeywordAnalysis";
 import { useResume } from "@/hooks/useResume";
-import { useUserData } from "@/hooks/useUserData";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -20,6 +19,7 @@ const Profile = () => {
     isSaving,
     isAnalyzing,
     keywords,
+    isLoading,
     setKeywords,
     setIsEditing,
     handleSaveResume,
@@ -29,17 +29,6 @@ const Profile = () => {
     handleReanalyze,
     handleUpdateKeywords,
   } = useResume(user.id);
-
-  const { isLoading } = useUserData(
-    user.id,
-    handleResumeTextChange,
-    (loadedKeywords, loadedNonKeywords) => {
-      if (loadedKeywords?.length > 0) {
-        console.log('Setting initial keywords:', loadedKeywords);
-        setKeywords(loadedKeywords);
-      }
-    }
-  );
 
   return (
     <div className="container mx-auto px-4 py-8">
