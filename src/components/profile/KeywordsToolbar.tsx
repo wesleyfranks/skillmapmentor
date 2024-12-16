@@ -18,12 +18,15 @@ export const KeywordsToolbar = ({
   onCopyKeywords,
   onDeleteAll,
 }: KeywordsToolbarProps) => {
+  const hasKeywords = keywordsCount > 0;
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
       <Button
         variant="outline"
         size="sm"
         onClick={onCopyKeywords}
+        disabled={!hasKeywords || isAnalyzing}
         className="bg-background hover:bg-accent w-full flex items-center justify-center gap-2"
       >
         <Copy className="h-4 w-4" />
@@ -33,6 +36,7 @@ export const KeywordsToolbar = ({
         variant="outline"
         size="sm"
         onClick={onRemoveDuplicates}
+        disabled={!hasKeywords || isAnalyzing}
         className="bg-background hover:bg-accent w-full flex items-center justify-center gap-2"
       >
         <Filter className="h-4 w-4" />
@@ -42,6 +46,7 @@ export const KeywordsToolbar = ({
         variant="outline"
         size="sm"
         onClick={onDeleteAll}
+        disabled={!hasKeywords || isAnalyzing}
         className="text-destructive hover:text-destructive-foreground hover:bg-destructive w-full flex items-center justify-center gap-2"
       >
         <Trash2 className="h-4 w-4" />

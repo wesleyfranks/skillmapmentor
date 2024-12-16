@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { KeywordsList } from "./KeywordsList";
 import { KeywordsToolbar } from "./KeywordsToolbar";
-import { FileX } from "lucide-react";
+import { FileX, Loader2 } from "lucide-react";
 
 interface KeywordAnalysisProps {
   resumeText: string;
@@ -101,9 +101,7 @@ export const KeywordAnalysis = ({
     }
   };
 
-  if (!resumeText) return null;
-
-  if (!isAnalyzing && keywords.length === 0) {
+  if (!resumeText) {
     return (
       <div className="flex flex-col items-center justify-center space-y-4 h-[300px] border border-dashed border-gray-300 rounded-lg bg-gray-50">
         <FileX className="w-12 h-12 text-gray-400" />
@@ -136,8 +134,12 @@ export const KeywordAnalysis = ({
       </div>
 
       <div className="bg-muted/50 rounded-lg p-4 min-h-[100px] max-h-[500px] overflow-y-auto">
-        {isAnalyzing && (
+        {isAnalyzing ? (
           <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm text-muted-foreground">Analyzing resume...</span>
+            </div>
             <Progress value={progress} className="w-full" />
             <div className="text-sm text-muted-foreground">
               {progress < 30 && "Initializing analysis..."}
@@ -151,19 +153,19 @@ export const KeywordAnalysis = ({
               ))}
             </div>
           </div>
-        )}
-
-        {keywords.length > 0 && !isAnalyzing && (
-          <KeywordsList
-            keywords={keywords}
-            editingKeyword={editingKeyword}
-            onEdit={handleEditKeyword}
-            onSave={handleSaveKeyword}
-            onCancel={() => setEditingKeyword(null)}
-            onDelete={handleDeleteKeyword}
-            onEditingChange={(index, value) => setEditingKeyword({ index, value })}
-            onAddToNonKeywords={onAddToNonKeywords!}
-          />
+        ) : (
+          keywords.length > 0 && (
+            <KeywordsList
+              keywords={keywords}
+              editingKeyword={editingKeyword}
+              onEdit={handleEditKeyword}
+              onSave={handleSaveKeyword}
+              onCancel={() => setEditingKeyword(null)}
+              onDelete={handleDeleteKeyword}
+              onEditingChange={(index, value) => setEditingKeyword({ index, value })}
+              onAddToNonKeywords={onAddToNonKeywords!}
+            />
+          )
         )}
       </div>
     </div>
