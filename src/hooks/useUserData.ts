@@ -20,6 +20,19 @@ export const useUserData = (userId: string) => {
       try {
         console.log('[useUserData] Fetching data for user:', userId);
         
+        // First verify the session is valid
+        const { data: session, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('[useUserData] Session error:', sessionError);
+          throw sessionError;
+        }
+
+        if (!session?.session) {
+          console.error('[useUserData] No valid session found');
+          throw new Error('No valid session found');
+        }
+        
         const { data, error } = await supabase
           .from('users')
           .select('resume_text, keywords, non_keywords, email')
@@ -36,20 +49,25 @@ export const useUserData = (userId: string) => {
         if (!data) {
           console.log('[useUserData] No user found, creating new record');
           
-          // First, get the user's email from auth
-          const { data: authUser, error: authError } = await supabase.auth.getUser(userId);
+          const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
           
-          if (authError || !authUser.user?.email) {
+          if (authError) {
             console.error('[useUserData] Error getting auth user:', authError);
             toast.error("Failed to initialize user data");
             throw authError;
+          }
+
+          if (!authUser?.email) {
+            console.error('[useUserData] No email found for user');
+            toast.error("Failed to initialize user data");
+            throw new Error('No email found for user');
           }
 
           const { error: insertError } = await supabase
             .from('users')
             .insert({
               id: userId,
-              email: authUser.user.email,
+              email: authUser.email,
               resume_text: null,
               keywords: [],
               non_keywords: []
