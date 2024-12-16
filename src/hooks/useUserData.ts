@@ -28,36 +28,37 @@ export const useUserData = (
           throw new Error('No valid session');
         }
 
+        // First try to get the existing user data
         const { data, error } = await supabase
           .from('users')
           .select('resume_text, keywords, non_keywords')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
 
-        if (error) {
-          if (error.code === 'PGRST116') {
-            console.log('No user data found, creating new user record');
-            const { data: newUser, error: insertError } = await supabase
-              .from('users')
-              .insert({
-                id: userId,
-                email: session.user.email,
-                full_name: session.user.user_metadata?.full_name
-              })
-              .select()
-              .single();
-
-            if (insertError) throw insertError;
-            return newUser;
-          }
-          
-          console.error('Error fetching user data:', {
-            error,
-            errorMessage: error.message,
-            errorDetails: error.details,
-            userId
-          });
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching user data:', error);
           throw error;
+        }
+
+        // If no data exists, create a new user record
+        if (!data) {
+          console.log('No user data found, creating new user record');
+          const { data: newUser, error: insertError } = await supabase
+            .from('users')
+            .insert({
+              id: userId,
+              email: session.user.email,
+              full_name: session.user.user_metadata?.full_name
+            })
+            .select('resume_text, keywords, non_keywords')
+            .single();
+
+          if (insertError) {
+            console.error('Error creating new user record:', insertError);
+            throw insertError;
+          }
+
+          return newUser;
         }
 
         console.log('Successfully received user data:', {
