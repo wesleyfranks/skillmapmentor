@@ -24,7 +24,7 @@ export const useUserData = (userId: string) => {
           .from('users')
           .select('resume_text, keywords, non_keywords')
           .eq('id', userId)
-          .maybeSingle(); // Using maybeSingle() instead of single() to handle no rows gracefully
+          .single();
 
         // Log the response for debugging
         console.log('[useUserData] Response:', { data, error });
@@ -35,7 +35,6 @@ export const useUserData = (userId: string) => {
           throw error;
         }
 
-        // If no data found, return default empty state
         if (!data) {
           console.log('[useUserData] No user data found, returning default state');
           return {
