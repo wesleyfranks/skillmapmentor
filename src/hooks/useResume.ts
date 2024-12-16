@@ -134,7 +134,6 @@ export const useResume = (userId: string) => {
       if (success) await refetch();
     },
     handleResumeTextChange: (text: string) => {
-      // This will be handled by the form directly
       console.log('[useResume] Text changed:', { length: text.length });
     },
     handleReanalyze: () => handleReanalyze(userData?.resume_text),
