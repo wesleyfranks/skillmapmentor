@@ -32,9 +32,21 @@ export const useUserData = (
           .from('users')
           .select('resume_text, keywords, non_keywords')
           .eq('id', userId)
-          .maybeSingle();
+          .single();
 
         if (error) {
+          if (error.code === 'PGRST116') {
+            console.log('No user data found, creating new user record');
+            const { data: newUser, error: insertError } = await supabase
+              .from('users')
+              .insert([{ id: userId }])
+              .select()
+              .single();
+
+            if (insertError) throw insertError;
+            return newUser;
+          }
+          
           console.error('Error fetching user data:', {
             error,
             errorMessage: error.message,
@@ -44,22 +56,18 @@ export const useUserData = (
           throw error;
         }
 
-        if (data) {
-          console.log('Successfully received user data:', {
-            hasResumeText: !!data.resume_text,
-            keywordsCount: data.keywords?.length,
-            nonKeywordsCount: data.non_keywords?.length
-          });
-          
-          if (data.resume_text) {
-            onResumeLoad(data.resume_text);
-          }
-          
-          if (onKeywordsLoad) {
-            onKeywordsLoad(data.keywords || [], data.non_keywords || []);
-          }
-        } else {
-          console.log('No user data found, this is normal for new users');
+        console.log('Successfully received user data:', {
+          hasResumeText: !!data?.resume_text,
+          keywordsCount: data?.keywords?.length,
+          nonKeywordsCount: data?.non_keywords?.length
+        });
+        
+        if (data?.resume_text) {
+          onResumeLoad(data.resume_text);
+        }
+        
+        if (onKeywordsLoad && data) {
+          onKeywordsLoad(data.keywords || [], data.non_keywords || []);
         }
         
         return data;
