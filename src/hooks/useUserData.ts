@@ -21,9 +21,9 @@ export const useUserData = (
           timestamp: new Date().toISOString()
         });
 
-        const isSessionValid = await validateSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (!isSessionValid) {
+        if (sessionError || !session) {
           console.error('No valid session found');
           throw new Error('No valid session');
         }
