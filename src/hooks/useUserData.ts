@@ -33,10 +33,10 @@ export const useUserData = (userId: string) => {
           throw new Error('No valid session found');
         }
 
-        // Try to fetch user data first
+        // Try to fetch user data first - include all required fields
         const { data: existingUser, error: fetchError } = await supabase
           .from('users')
-          .select('resume_text, keywords, non_keywords')
+          .select('id, email, resume_text, keywords, non_keywords')
           .eq('id', userId)
           .maybeSingle();
 
@@ -49,6 +49,8 @@ export const useUserData = (userId: string) => {
         // If user exists, return their data
         if (existingUser) {
           console.log('[useUserData] User found:', {
+            id: existingUser.id,
+            email: existingUser.email,
             hasResumeText: !!existingUser.resume_text,
             keywordsCount: existingUser.keywords?.length
           });
