@@ -12,7 +12,9 @@ export const useResume = (userId: string) => {
     const success = await saveResume(text);
     if (success) {
       await refetch();
-      await analyzeResume(text, userData?.keywords || []);
+      if (userData?.keywords) {
+        await analyzeResume(text, userData.keywords);
+      }
     }
   };
 
@@ -49,7 +51,11 @@ export const useResume = (userId: string) => {
     handleResumeTextChange: (text: string) => {
       console.log('[useResume] Text changed:', { length: text.length });
     },
-    handleReanalyze: () => analyzeResume(userData?.resume_text || "", userData?.keywords || []),
+    handleReanalyze: () => {
+      if (userData?.resume_text) {
+        return analyzeResume(userData.resume_text, userData?.keywords || []);
+      }
+    },
     handleUpdateKeywords,
   };
 };
