@@ -6,26 +6,6 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
   try {
     console.log('[API] Fetching user data for:', userId);
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError) {
-      console.error('[API] Session error:', sessionError);
-      toast.error("Please log in to continue");
-      throw sessionError;
-    }
-
-    if (!session) {
-      console.log('[API] No active session');
-      toast.error("Please log in to continue");
-      return null;
-    }
-
-    console.log('[API] Session found:', {
-      userId: session.user.id,
-      requestedUserId: userId,
-      accessToken: session.access_token.slice(0, 10) + '...'
-    });
-
     const { data: userData, error: fetchError } = await supabase
       .from('users')
       .select('resume_text, keywords, non_keywords')
@@ -45,7 +25,7 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
     console.log('[API] User data response:', userData);
 
     if (!userData) {
-      console.log('[API] No user data found for authenticated user');
+      console.log('[API] No user data found, returning default values');
       return {
         resume_text: null,
         keywords: [],
