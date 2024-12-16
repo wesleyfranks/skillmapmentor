@@ -9,6 +9,7 @@ export const useResume = (userId: string) => {
   const [resumeText, setResumeText] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasInitialAnalysis, setHasInitialAnalysis] = useState(false);
   
   const { 
     isAnalyzing, 
@@ -25,23 +26,29 @@ export const useResume = (userId: string) => {
   const { isLoading, refetch } = useUserData(
     userId, 
     (loadedText) => {
-      console.log('[useResume][onResumeLoad] Setting resume text from loaded data:', {
+      console.log('[useResume][Profile][onResumeLoad] Setting resume text from loaded data:', {
         textLength: loadedText?.length,
         hasText: !!loadedText
       });
       if (loadedText) {
         setResumeText(loadedText);
+        // Only analyze on initial load if we haven't done it yet and there's no keywords
+        if (!hasInitialAnalysis && (!keywords || keywords.length === 0)) {
+          console.log('[useResume][Profile][onResumeLoad] Triggering initial analysis');
+          handleReanalyze(loadedText);
+          setHasInitialAnalysis(true);
+        }
       }
     },
     (loadedKeywords, loadedNonKeywords) => {
       if (loadedKeywords && loadedKeywords.length > 0) {
-        console.log('[useResume][onKeywordsLoad] Setting initial keywords:', {
+        console.log('[useResume][Profile][onKeywordsLoad] Setting initial keywords:', {
           keywordsCount: loadedKeywords.length
         });
         setKeywords(loadedKeywords);
       }
       if (loadedNonKeywords && loadedNonKeywords.length > 0) {
-        console.log('[useResume][onKeywordsLoad] Setting initial non-keywords:', {
+        console.log('[useResume][Profile][onKeywordsLoad] Setting initial non-keywords:', {
           nonKeywordsCount: loadedNonKeywords.length
         });
         setNonKeywords(loadedNonKeywords);
@@ -50,14 +57,14 @@ export const useResume = (userId: string) => {
   );
 
   const handleSaveResume = async () => {
-    console.log('[useResume][handleSaveResume] Saving resume');
+    console.log('[useResume][Profile][handleSaveResume] Saving resume');
     setIsSaving(true);
     try {
       const shouldAnalyze = await saveResume(resumeText);
       setIsEditing(false);
 
       if (shouldAnalyze) {
-        console.log('[useResume][handleSaveResume] Initiating resume analysis');
+        console.log('[useResume][Profile][handleSaveResume] Initiating resume analysis');
         await handleReanalyze(resumeText);
       }
       
@@ -68,7 +75,7 @@ export const useResume = (userId: string) => {
   };
 
   const handleDeleteResume = async () => {
-    console.log('[useResume][handleDeleteResume] Deleting resume');
+    console.log('[useResume][Profile][handleDeleteResume] Deleting resume');
     const success = await deleteResume();
     if (success) {
       setResumeText("");
@@ -77,7 +84,7 @@ export const useResume = (userId: string) => {
   };
 
   const handleDeleteKeywords = async () => {
-    console.log('[useResume][handleDeleteKeywords] Deleting keywords');
+    console.log('[useResume][Profile][handleDeleteKeywords] Deleting keywords');
     const success = await deleteKeywords();
     if (success) {
       setKeywords([]);
@@ -86,12 +93,12 @@ export const useResume = (userId: string) => {
   };
 
   const handleResumeTextChange = (text: string) => {
-    console.log('[useResume][handleResumeTextChange] Updating resume text');
+    console.log('[useResume][Profile][handleResumeTextChange] Updating resume text');
     setResumeText(text);
   };
 
   const handleUpdateKeywords = async (newKeywords: string[]) => {
-    console.log('[useResume][handleUpdateKeywords] Updating keywords:', {
+    console.log('[useResume][Profile][handleUpdateKeywords] Updating keywords:', {
       keywordsCount: newKeywords.length
     });
     try {
@@ -104,7 +111,7 @@ export const useResume = (userId: string) => {
       setKeywords(newKeywords);
       await refetch();
     } catch (error) {
-      console.error("[useResume][handleUpdateKeywords] Error updating keywords:", error);
+      console.error("[useResume][Profile][handleUpdateKeywords] Error updating keywords:", error);
       toast.error("Failed to update keywords");
     }
   };
