@@ -22,17 +22,18 @@ export const useUserData = (
         });
 
         // First verify we have a valid session
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (!sessionData.session) {
           throw new Error('No valid session found');
         }
 
-        // Fetch the user data
+        // Fetch the user data with a single query
         const { data, error } = await supabase
           .from('users')
           .select('resume_text, keywords, non_keywords')
           .eq('id', userId)
-          .single();
+          .limit(1)
+          .maybeSingle();
 
         if (error) {
           console.error('Error fetching user data:', error);
