@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 export interface UserData {
   resume_text: string | null;
@@ -11,7 +12,22 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
   try {
     console.log('[API] Fetching user data for:', userId);
     
-    // First try to get the user data
+    // First check if we have a valid session
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      console.error('[API] Session error:', sessionError);
+      toast.error("Please log in to continue");
+      throw sessionError;
+    }
+
+    if (!sessionData.session) {
+      console.log('[API] No active session');
+      toast.error("Please log in to continue");
+      return null;
+    }
+
+    // Get the user data with proper select parameter
     const { data: userData, error: fetchError } = await supabase
       .from('users')
       .select('resume_text, keywords, non_keywords')
@@ -20,6 +36,11 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
 
     if (fetchError) {
       console.error('[API] Error fetching user:', fetchError);
+      if (fetchError.code === '42501') {
+        toast.error("You don't have permission to access this data");
+      } else {
+        toast.error("Failed to load user data");
+      }
       throw fetchError;
     }
 
@@ -31,11 +52,13 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
       
       if (authError) {
         console.error('[API] Error getting auth user:', authError);
+        toast.error("Authentication error");
         throw authError;
       }
 
       const authUser = authData.user;
       if (!authUser) {
+        toast.error("No authenticated user found");
         throw new Error('Auth user not found');
       }
 
@@ -53,6 +76,11 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
 
       if (insertError) {
         console.error('[API] Error creating user:', insertError);
+        if (insertError.code === '42501') {
+          toast.error("You don't have permission to create user data");
+        } else {
+          toast.error("Failed to create user data");
+        }
         throw insertError;
       }
 
@@ -67,7 +95,6 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
     return userData as UserData;
   } catch (error: any) {
     console.error('[API] Error:', error);
-    toast.error("Failed to load user data");
     throw error;
   }
 };
@@ -80,11 +107,17 @@ export const updateUserResume = async (userId: string, resumeText: string | null
       .update({ resume_text: resumeText })
       .eq('id', userId);
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === '42501') {
+        toast.error("You don't have permission to update resume");
+      } else {
+        toast.error("Failed to update resume");
+      }
+      throw error;
+    }
     return true;
   } catch (error) {
     console.error('[API] Error updating resume:', error);
-    toast.error("Failed to update resume");
     return false;
   }
 };
@@ -97,11 +130,17 @@ export const updateUserKeywords = async (userId: string, keywords: string[]) => 
       .update({ keywords })
       .eq('id', userId);
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === '42501') {
+        toast.error("You don't have permission to update keywords");
+      } else {
+        toast.error("Failed to update keywords");
+      }
+      throw error;
+    }
     return true;
   } catch (error) {
     console.error('[API] Error updating keywords:', error);
-    toast.error("Failed to update keywords");
     return false;
   }
 };
@@ -113,11 +152,17 @@ export const deleteUserKeywords = async (userId: string) => {
       .update({ keywords: [] })
       .eq('id', userId);
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === '42501') {
+        toast.error("You don't have permission to clear keywords");
+      } else {
+        toast.error("Failed to clear keywords");
+      }
+      throw error;
+    }
     return true;
   } catch (error) {
     console.error('[API] Error clearing keywords:', error);
-    toast.error("Failed to clear keywords");
     return false;
   }
 };
@@ -129,11 +174,17 @@ export const updateUserNonKeywords = async (userId: string, nonKeywords: string[
       .update({ non_keywords: nonKeywords })
       .eq('id', userId);
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === '42501') {
+        toast.error("You don't have permission to update non-keywords");
+      } else {
+        toast.error("Failed to update non-keywords");
+      }
+      throw error;
+    }
     return true;
   } catch (error) {
     console.error('[API] Error updating non-keywords:', error);
-    toast.error("Failed to update non-keywords");
     return false;
   }
 };
