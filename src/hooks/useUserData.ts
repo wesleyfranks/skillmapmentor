@@ -21,22 +21,22 @@ export const useUserData = (userId: string) => {
         console.log('[useUserData] Attempting to fetch data for user:', userId);
         
         // First, verify the session is valid
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
           console.error('[useUserData] Session error:', sessionError.message);
           throw new Error('Authentication error');
         }
 
-        if (!sessionData.session) {
+        if (!session) {
           console.error('[useUserData] No active session found');
           throw new Error('No active session');
         }
 
         // Log authentication status (without sensitive data)
-        console.log('[useUserData] User authenticated:', !!sessionData.session);
+        console.log('[useUserData] User authenticated:', !!session);
 
-        // Make a single query to fetch user data
+        // Make a single query to fetch user data using the Supabase client
         const { data, error: queryError } = await supabase
           .from('users')
           .select('resume_text, keywords, non_keywords')
@@ -45,18 +45,24 @@ export const useUserData = (userId: string) => {
 
         // Handle query errors
         if (queryError) {
-          if (queryError.code === 'PGRST116') {
-            console.error('[useUserData] No matching row found for user:', userId);
-            throw new Error('User data not found');
-          }
+          console.error('[useUserData] Query error:', {
+            code: queryError.code,
+            message: queryError.message,
+            details: queryError.details
+          });
           throw queryError;
+        }
+
+        if (!data) {
+          console.error('[useUserData] No data found for user:', userId);
+          throw new Error('No data found');
         }
 
         // Log success (without sensitive data)
         console.log('[useUserData] Data fetched successfully:', {
-          hasResumeText: !!data?.resume_text,
-          keywordsCount: data?.keywords?.length || 0,
-          nonKeywordsCount: data?.non_keywords?.length || 0
+          hasResumeText: !!data.resume_text,
+          keywordsCount: data.keywords?.length || 0,
+          nonKeywordsCount: data.non_keywords?.length || 0
         });
 
         return data as UserData;
@@ -79,6 +85,7 @@ export const useUserData = (userId: string) => {
     },
     staleTime: 1000 * 60 * 5, // Cache data for 5 minutes
     gcTime: 1000 * 60 * 30,   // Keep unused data for 30 minutes
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    refetchInterval: false // Disable automatic refetching
   });
 };
