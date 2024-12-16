@@ -18,7 +18,8 @@ export const useUserData = (
       try {
         console.log('[useUserData][queryFn] Fetching user data:', {
           userId,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          source: 'cache or network'
         });
 
         const { data, error } = await supabase
@@ -37,7 +38,8 @@ export const useUserData = (
           console.log('[useUserData][queryFn] Successfully received user data:', {
             hasResumeText: !!data.resume_text,
             keywordsCount: data.keywords?.length,
-            nonKeywordsCount: data.non_keywords?.length
+            nonKeywordsCount: data.non_keywords?.length,
+            source: 'database'
           });
 
           if (data.resume_text) {
@@ -58,8 +60,10 @@ export const useUserData = (
         throw error;
       }
     },
-    staleTime: Infinity, // Data won't become stale automatically
+    staleTime: 1000 * 60 * 5, // Data becomes stale after 5 minutes
     gcTime: 1000 * 60 * 30, // Cache for 30 minutes
+    refetchOnMount: true, // Refetch when component mounts
+    refetchOnWindowFocus: false // Don't refetch on window focus
   });
 
   return { isLoading, refetch };
