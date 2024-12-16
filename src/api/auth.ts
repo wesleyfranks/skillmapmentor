@@ -24,6 +24,18 @@ export const signIn = async (email: string, password: string) => {
 
 export const signUp = async (email: string, password: string, fullName: string) => {
   try {
+    // First check if the email already exists
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('email')
+      .eq('email', email)
+      .single();
+
+    if (existingUser) {
+      toast.error("This email is already registered. Please try logging in instead.");
+      return { data: null, error: new Error("Email already registered") };
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -34,7 +46,15 @@ export const signUp = async (email: string, password: string, fullName: string) 
       },
     });
 
-    if (error) throw error;
+    if (error) {
+      // Handle specific Supabase error codes
+      if (error.message.includes("User already registered")) {
+        toast.error("This email is already registered. Please try logging in instead.");
+      } else {
+        toast.error(error.message);
+      }
+      throw error;
+    }
 
     if (data?.user) {
       toast.success("Account created successfully!");
@@ -43,7 +63,6 @@ export const signUp = async (email: string, password: string, fullName: string) 
     return { data, error: null };
   } catch (error: any) {
     console.error('[Auth] Sign up error:', error);
-    toast.error(error.message);
     return { data: null, error };
   }
 };
