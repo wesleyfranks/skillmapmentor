@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUserData } from "./useUserData";
 import { useResumeActions } from "./useResumeActions";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,9 +9,29 @@ export const useResume = (userId: string) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [hasInitialAnalysis, setHasInitialAnalysis] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
   const { data: userData, isLoading, refetch } = useUserData(userId);
   const { saveResume, deleteResume, deleteKeywords } = useResumeActions(userId);
+
+  useEffect(() => {
+    console.log('[useResume] userData changed:', {
+      hasResumeText: !!userData?.resume_text,
+      keywordsCount: userData?.keywords?.length,
+      isLoading,
+      retryCount
+    });
+
+    if (!userData && !isLoading && retryCount < MAX_RETRIES) {
+      console.log('[useResume] Retrying data fetch...');
+      const timer = setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+        refetch();
+      }, 1000 * (retryCount + 1)); // Exponential backoff
+      return () => clearTimeout(timer);
+    }
+  }, [userData, isLoading, retryCount]);
 
   const handleInitialAnalysis = async (text: string) => {
     if (!hasInitialAnalysis && text && (!userData?.keywords || userData.keywords.length === 0)) {
@@ -111,9 +131,12 @@ export const useResume = (userId: string) => {
   };
 
   // If we have userData, trigger initial analysis
-  if (userData?.resume_text && !hasInitialAnalysis) {
-    handleInitialAnalysis(userData.resume_text);
-  }
+  useEffect(() => {
+    if (userData?.resume_text && !hasInitialAnalysis) {
+      console.log('[useResume] Triggering initial analysis');
+      handleInitialAnalysis(userData.resume_text);
+    }
+  }, [userData?.resume_text, hasInitialAnalysis]);
 
   return {
     resumeText: userData?.resume_text || "",
@@ -126,10 +149,12 @@ export const useResume = (userId: string) => {
     setIsEditing,
     handleSaveResume,
     handleDeleteResume: async () => {
+      console.log('[useResume] Deleting resume');
       const success = await deleteResume();
       if (success) await refetch();
     },
     handleDeleteKeywords: async () => {
+      console.log('[useResume] Deleting keywords');
       const success = await deleteKeywords();
       if (success) await refetch();
     },
