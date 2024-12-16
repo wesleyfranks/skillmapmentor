@@ -21,69 +21,58 @@ export const useUserData = (userId: string) => {
         console.log('[useUserData] Fetching data for user:', userId);
         
         // First verify the session is valid
-        const { data: session, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
           console.error('[useUserData] Session error:', sessionError);
           throw sessionError;
         }
 
-        if (!session?.session) {
+        if (!session?.access_token) {
           console.error('[useUserData] No valid session found');
           throw new Error('No valid session found');
         }
-        
+
+        // Fetch user data with single response handling
         const { data, error } = await supabase
           .from('users')
-          .select('resume_text, keywords, non_keywords, email')
+          .select('resume_text, keywords, non_keywords')
           .eq('id', userId)
-          .maybeSingle();
+          .single();
 
         if (error) {
-          console.error('[useUserData] Error fetching data:', error);
-          toast.error("Failed to load user data");
-          throw error;
-        }
+          if (error.code === 'PGRST116') {
+            console.log('[useUserData] No user found, creating new record');
+            
+            // Create new user record
+            const { data: newUser, error: createError } = await supabase
+              .from('users')
+              .insert([
+                { 
+                  id: userId,
+                  keywords: [],
+                  non_keywords: []
+                }
+              ])
+              .select()
+              .single();
 
-        // If no data is found, create a new user record
-        if (!data) {
-          console.log('[useUserData] No user found, creating new record');
-          
-          const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-          
-          if (authError) {
-            console.error('[useUserData] Error getting auth user:', authError);
-            toast.error("Failed to initialize user data");
-            throw authError;
-          }
+            if (createError) {
+              console.error('[useUserData] Error creating user:', createError);
+              toast.error("Failed to initialize user data");
+              throw createError;
+            }
 
-          if (!authUser?.email) {
-            console.error('[useUserData] No email found for user');
-            toast.error("Failed to initialize user data");
-            throw new Error('No email found for user');
-          }
-
-          const { error: insertError } = await supabase
-            .from('users')
-            .insert({
-              id: userId,
-              email: authUser.email,
+            return {
               resume_text: null,
               keywords: [],
               non_keywords: []
-            });
-
-          if (insertError) {
-            console.error('[useUserData] Error creating user:', insertError);
-            toast.error("Failed to initialize user data");
-            throw insertError;
+            } as UserData;
           }
 
-          return {
-            resume_text: null,
-            keywords: [],
-            non_keywords: []
-          } as UserData;
+          console.error('[useUserData] Error fetching data:', error);
+          toast.error("Failed to load user data");
+          throw error;
         }
 
         console.log('[useUserData] Data fetched successfully:', {
