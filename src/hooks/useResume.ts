@@ -25,30 +25,39 @@ export const useResume = (userId: string) => {
   const { isLoading, refetch } = useUserData(
     userId, 
     (loadedText) => {
-      console.log('Setting resume text from loaded data:', loadedText);
+      console.log('[useResume][onResumeLoad] Setting resume text from loaded data:', {
+        textLength: loadedText?.length,
+        hasText: !!loadedText
+      });
       if (loadedText) {
         setResumeText(loadedText);
       }
     },
     (loadedKeywords, loadedNonKeywords) => {
       if (loadedKeywords && loadedKeywords.length > 0) {
-        console.log('Setting initial keywords:', loadedKeywords);
+        console.log('[useResume][onKeywordsLoad] Setting initial keywords:', {
+          keywordsCount: loadedKeywords.length
+        });
         setKeywords(loadedKeywords);
       }
       if (loadedNonKeywords && loadedNonKeywords.length > 0) {
-        console.log('Setting initial non-keywords:', loadedNonKeywords);
+        console.log('[useResume][onKeywordsLoad] Setting initial non-keywords:', {
+          nonKeywordsCount: loadedNonKeywords.length
+        });
         setNonKeywords(loadedNonKeywords);
       }
     }
   );
 
   const handleSaveResume = async () => {
+    console.log('[useResume][handleSaveResume] Saving resume');
     setIsSaving(true);
     try {
       const shouldAnalyze = await saveResume(resumeText);
       setIsEditing(false);
 
       if (shouldAnalyze) {
+        console.log('[useResume][handleSaveResume] Initiating resume analysis');
         await handleReanalyze(resumeText);
       }
       
@@ -59,6 +68,7 @@ export const useResume = (userId: string) => {
   };
 
   const handleDeleteResume = async () => {
+    console.log('[useResume][handleDeleteResume] Deleting resume');
     const success = await deleteResume();
     if (success) {
       setResumeText("");
@@ -67,6 +77,7 @@ export const useResume = (userId: string) => {
   };
 
   const handleDeleteKeywords = async () => {
+    console.log('[useResume][handleDeleteKeywords] Deleting keywords');
     const success = await deleteKeywords();
     if (success) {
       setKeywords([]);
@@ -75,10 +86,14 @@ export const useResume = (userId: string) => {
   };
 
   const handleResumeTextChange = (text: string) => {
+    console.log('[useResume][handleResumeTextChange] Updating resume text');
     setResumeText(text);
   };
 
   const handleUpdateKeywords = async (newKeywords: string[]) => {
+    console.log('[useResume][handleUpdateKeywords] Updating keywords:', {
+      keywordsCount: newKeywords.length
+    });
     try {
       const { error } = await supabase
         .from("users")
@@ -89,7 +104,7 @@ export const useResume = (userId: string) => {
       setKeywords(newKeywords);
       await refetch();
     } catch (error) {
-      console.error("Error updating keywords:", error);
+      console.error("[useResume][handleUpdateKeywords] Error updating keywords:", error);
       toast.error("Failed to update keywords");
     }
   };

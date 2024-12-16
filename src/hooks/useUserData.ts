@@ -11,12 +11,12 @@ export const useUserData = (
     queryKey: ['userData', userId],
     queryFn: async () => {
       if (!userId) {
-        console.log('No userId provided');
+        console.log('[useUserData][queryFn] No userId provided');
         return null;
       }
 
       try {
-        console.log('Fetching user data:', {
+        console.log('[useUserData][queryFn] Fetching user data:', {
           userId,
           timestamp: new Date().toISOString()
         });
@@ -29,29 +29,31 @@ export const useUserData = (
           .maybeSingle();
 
         if (error) {
-          console.error('Error fetching user data:', error);
+          console.error('[useUserData][queryFn] Error fetching user data:', error);
           throw error;
         }
 
         if (data) {
-          console.log('Successfully received user data:', {
+          console.log('[useUserData][queryFn] Successfully received user data:', {
             hasResumeText: !!data.resume_text,
             keywordsCount: data.keywords?.length,
             nonKeywordsCount: data.non_keywords?.length
           });
 
           if (data.resume_text) {
+            console.log('[useUserData][queryFn] Calling onResumeLoad with text');
             onResumeLoad(data.resume_text);
           }
 
           if (onKeywordsLoad && (data.keywords || data.non_keywords)) {
+            console.log('[useUserData][queryFn] Calling onKeywordsLoad with keywords and non-keywords');
             onKeywordsLoad(data.keywords || [], data.non_keywords || []);
           }
         }
 
         return data;
       } catch (error: any) {
-        console.error('Error in fetchUserData:', error);
+        console.error('[useUserData][queryFn] Error in fetchUserData:', error);
         toast.error("Could not load your data. Please try refreshing the page.");
         throw error;
       }
