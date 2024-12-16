@@ -18,31 +18,37 @@ export const useUserData = (userId: string) => {
 
       console.log('[useUserData] Fetching data for user:', userId);
       
-      const { data, error } = await supabase
-        .from('users')
-        .select('resume_text, keywords, non_keywords')
-        .eq('id', userId)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('resume_text, keywords, non_keywords')
+          .eq('id', userId)
+          .single();
 
-      if (error) {
-        console.error('[useUserData] Error fetching data:', error);
+        if (error) {
+          console.error('[useUserData] Error fetching data:', error);
+          throw error;
+        }
+
+        console.log('[useUserData] Successfully fetched data:', {
+          hasResumeText: !!data?.resume_text,
+          keywordsCount: data?.keywords?.length || 0,
+          nonKeywordsCount: data?.non_keywords?.length || 0
+        });
+
+        return {
+          resume_text: data.resume_text || null,
+          keywords: data.keywords || [],
+          non_keywords: data.non_keywords || []
+        } as UserData;
+      } catch (error) {
+        console.error('[useUserData] Error in try/catch:', error);
         throw error;
       }
-
-      console.log('[useUserData] Successfully fetched data:', {
-        hasResumeText: !!data?.resume_text,
-        keywordsCount: data?.keywords?.length || 0,
-        nonKeywordsCount: data?.non_keywords?.length || 0
-      });
-
-      return {
-        resume_text: data.resume_text || null,
-        keywords: data.keywords || [],
-        non_keywords: data.non_keywords || []
-      } as UserData;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30,   // 30 minutes
-    retry: 1
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 30000)
   });
 };
