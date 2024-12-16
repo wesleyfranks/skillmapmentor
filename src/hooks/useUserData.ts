@@ -1,16 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { supabase, validateSession } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
-
-type UserData = Database['public']['Tables']['users']['Row'];
+import { supabase } from "@/integrations/supabase/client";
 
 export const useUserData = (
   userId: string, 
   onResumeLoad: (text: string) => void, 
   onKeywordsLoad?: (keywords: string[], nonKeywords: string[]) => void
 ) => {
-  const { data, isLoading } = useQuery({
+  const { isLoading } = useQuery({
     queryKey: ['userData', userId],
     queryFn: async () => {
       if (!userId) {
@@ -34,8 +31,7 @@ export const useUserData = (
         const { data, error } = await supabase
           .from('users')
           .select('resume_text, keywords, non_keywords')
-          .eq('id', userId)
-          .single();
+          .eq('id', userId);
 
         if (error) {
           console.error('Error fetching user data:', {
@@ -47,23 +43,31 @@ export const useUserData = (
           throw error;
         }
 
-        if (data) {
+        // Handle case where user exists in auth but not in public.users yet
+        if (!data || data.length === 0) {
+          console.log('No user data found, this is normal for new users');
+          return null;
+        }
+
+        const userData = data[0]; // Get first row since we filtered by user ID
+        
+        if (userData) {
           console.log('Successfully received user data:', {
-            hasResumeText: !!data.resume_text,
-            keywordsCount: data.keywords?.length,
-            nonKeywordsCount: data.non_keywords?.length
+            hasResumeText: !!userData.resume_text,
+            keywordsCount: userData.keywords?.length,
+            nonKeywordsCount: userData.non_keywords?.length
           });
           
-          if (data.resume_text) {
-            onResumeLoad(data.resume_text);
+          if (userData.resume_text) {
+            onResumeLoad(userData.resume_text);
           }
           
           if (onKeywordsLoad) {
-            onKeywordsLoad(data.keywords || [], data.non_keywords || []);
+            onKeywordsLoad(userData.keywords || [], userData.non_keywords || []);
           }
         }
         
-        return data;
+        return userData;
       } catch (error: any) {
         console.error('Error in fetchUserData:', error);
         toast.error("Could not load your data. Please try refreshing the page.");
