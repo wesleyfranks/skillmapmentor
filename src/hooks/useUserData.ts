@@ -28,19 +28,19 @@ export const useUserData = (userId: string) => {
           throw sessionError;
         }
 
-        if (!session?.access_token) {
+        if (!session) {
           console.error('[useUserData] No valid session found');
           throw new Error('No valid session found');
         }
 
-        // Try to fetch user data first - include all required fields
+        // Try to fetch user data first
         const { data: existingUser, error: fetchError } = await supabase
           .from('users')
-          .select('id, email, resume_text, keywords, non_keywords')
+          .select('*')
           .eq('id', userId)
-          .maybeSingle();
+          .single();
 
-        if (fetchError) {
+        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
           console.error('[useUserData] Error fetching data:', fetchError);
           toast.error("Failed to load user data");
           throw fetchError;
@@ -65,7 +65,6 @@ export const useUserData = (userId: string) => {
         // If no user found, create one
         console.log('[useUserData] No user found, creating new record');
         
-        // Get user email from auth
         const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
         
         if (authError || !authUser?.email) {
@@ -74,21 +73,29 @@ export const useUserData = (userId: string) => {
           throw authError || new Error('No email found for user');
         }
 
-        // Create new user record with required email field
-        const { error: createError } = await supabase
+        // Create new user record
+        const { data: newUser, error: createError } = await supabase
           .from('users')
-          .insert({
+          .insert([{
             id: userId,
             email: authUser.email,
+            full_name: authUser.user_metadata?.full_name || null,
             keywords: [],
             non_keywords: []
-          });
+          }])
+          .select()
+          .single();
 
         if (createError) {
           console.error('[useUserData] Error creating user:', createError);
           toast.error("Failed to initialize user data");
           throw createError;
         }
+
+        console.log('[useUserData] New user created:', {
+          id: newUser.id,
+          email: newUser.email
+        });
 
         // Return default data for new user
         return {
