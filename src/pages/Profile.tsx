@@ -50,8 +50,22 @@ const Profile = () => {
           </div>
           
           {!isLoading && (
-            <div className="space-y-8 lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0">
-              <div className="flex flex-col min-h-[500px] order-2 lg:order-2">
+            <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-8">
+              <div className="flex flex-col min-h-[500px] mb-8 lg:mb-0">
+                <h2 className="text-2xl font-bold text-center mb-6">Keywords Found</h2>
+                <div className="flex-grow">
+                  <KeywordAnalysis
+                    resumeText={resumeText}
+                    isAnalyzing={isAnalyzing}
+                    keywords={keywords}
+                    onReanalyze={handleReanalyze}
+                    onDeleteKeywords={handleDeleteKeywords}
+                    onUpdateKeywords={handleUpdateKeywords}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col min-h-[500px]">
                 <h2 className="text-2xl font-bold text-center mb-6">Resume</h2>
                 <div className="flex-grow">
                   <ResumeEditor
@@ -63,20 +77,6 @@ const Profile = () => {
                     onDelete={handleDeleteResume}
                     onChange={handleResumeTextChange}
                     userId={user.id}
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col min-h-[500px] order-1 lg:order-1">
-                <h2 className="text-2xl font-bold text-center mb-6">Keywords Found</h2>
-                <div className="flex-grow">
-                  <KeywordAnalysis
-                    resumeText={resumeText}
-                    isAnalyzing={isAnalyzing}
-                    keywords={keywords}
-                    onReanalyze={handleReanalyze}
-                    onDeleteKeywords={handleDeleteKeywords}
-                    onUpdateKeywords={handleUpdateKeywords}
                   />
                 </div>
               </div>
