@@ -20,20 +20,24 @@ export const useUserData = (userId: string) => {
       try {
         console.log('[useUserData] Fetching data for user:', userId);
         
-        const { data: existingUser, error: fetchError } = await supabase
+        const { data, error } = await supabase
           .from('users')
           .select('resume_text, keywords, non_keywords')
           .eq('id', userId)
-          .single();
+          .maybeSingle(); // Using maybeSingle() instead of single() to handle no rows gracefully
 
-        if (fetchError) {
-          console.error('[useUserData] Error fetching data:', fetchError);
+        // Log the response for debugging
+        console.log('[useUserData] Response:', { data, error });
+
+        if (error) {
+          console.error('[useUserData] Error fetching data:', error);
           toast.error("Failed to load user data");
-          throw fetchError;
+          throw error;
         }
 
-        if (!existingUser) {
-          console.error('[useUserData] No user data found');
+        // If no data found, return default empty state
+        if (!data) {
+          console.log('[useUserData] No user data found, returning default state');
           return {
             resume_text: null,
             keywords: [],
@@ -41,15 +45,17 @@ export const useUserData = (userId: string) => {
           } as UserData;
         }
 
+        // Log successful data retrieval
         console.log('[useUserData] User data found:', {
-          hasResumeText: !!existingUser.resume_text,
-          keywordsCount: existingUser.keywords?.length
+          hasResumeText: !!data.resume_text,
+          keywordsCount: data.keywords?.length
         });
         
+        // Return the user data with fallbacks for null values
         return {
-          resume_text: existingUser.resume_text || null,
-          keywords: existingUser.keywords || [],
-          non_keywords: existingUser.non_keywords || []
+          resume_text: data.resume_text || null,
+          keywords: data.keywords || [],
+          non_keywords: data.non_keywords || []
         } as UserData;
 
       } catch (error) {
