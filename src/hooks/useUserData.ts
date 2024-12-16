@@ -34,67 +34,67 @@ export const useUserData = (userId: string) => {
         }
 
         // Try to fetch user data first
-        const { data, error } = await supabase
+        const { data: existingUser, error: fetchError } = await supabase
           .from('users')
           .select('resume_text, keywords, non_keywords')
           .eq('id', userId)
-          .maybeSingle(); // Use maybeSingle() instead of single() to avoid 406 error
+          .maybeSingle();
 
-        if (error) {
-          console.error('[useUserData] Error fetching data:', error);
+        if (fetchError) {
+          console.error('[useUserData] Error fetching data:', fetchError);
           toast.error("Failed to load user data");
-          throw error;
+          throw fetchError;
         }
 
-        // If no user found, create one
-        if (!data) {
-          console.log('[useUserData] No user found, creating new record');
+        // If user exists, return their data
+        if (existingUser) {
+          console.log('[useUserData] User found:', {
+            hasResumeText: !!existingUser.resume_text,
+            keywordsCount: existingUser.keywords?.length
+          });
           
-          // Get user email from auth
-          const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-          
-          if (authError || !authUser?.email) {
-            console.error('[useUserData] Error getting auth user:', authError);
-            toast.error("Failed to initialize user data");
-            throw authError || new Error('No email found for user');
-          }
-
-          // Create new user record with required email field
-          const { data: newUser, error: createError } = await supabase
-            .from('users')
-            .insert({
-              id: userId,
-              email: authUser.email,
-              keywords: [],
-              non_keywords: []
-            })
-            .select('resume_text, keywords, non_keywords')
-            .single();
-
-          if (createError) {
-            console.error('[useUserData] Error creating user:', createError);
-            toast.error("Failed to initialize user data");
-            throw createError;
-          }
-
-          console.log('[useUserData] New user created:', newUser);
           return {
-            resume_text: null,
-            keywords: [],
-            non_keywords: []
+            resume_text: existingUser.resume_text || null,
+            keywords: existingUser.keywords || [],
+            non_keywords: existingUser.non_keywords || []
           } as UserData;
         }
 
-        console.log('[useUserData] Data fetched successfully:', {
-          hasResumeText: !!data.resume_text,
-          keywordsCount: data.keywords?.length
-        });
+        // If no user found, create one
+        console.log('[useUserData] No user found, creating new record');
+        
+        // Get user email from auth
+        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !authUser?.email) {
+          console.error('[useUserData] Error getting auth user:', authError);
+          toast.error("Failed to initialize user data");
+          throw authError || new Error('No email found for user');
+        }
 
+        // Create new user record with required email field
+        const { error: createError } = await supabase
+          .from('users')
+          .insert({
+            id: userId,
+            email: authUser.email,
+            keywords: [],
+            non_keywords: []
+          });
+
+        if (createError) {
+          console.error('[useUserData] Error creating user:', createError);
+          toast.error("Failed to initialize user data");
+          throw createError;
+        }
+
+        // Return default data for new user
         return {
-          resume_text: data.resume_text || null,
-          keywords: data.keywords || [],
-          non_keywords: data.non_keywords || []
+          resume_text: null,
+          keywords: [],
+          non_keywords: []
         } as UserData;
+
       } catch (error) {
         console.error('[useUserData] Error in try/catch:', error);
         toast.error("Failed to load user data");
