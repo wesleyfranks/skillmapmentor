@@ -7,7 +7,7 @@ export const useUserData = (
   onResumeLoad: (text: string) => void, 
   onKeywordsLoad?: (keywords: string[], nonKeywords: string[]) => void
 ) => {
-  const { isLoading, refetch } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['userData', userId],
     queryFn: async () => {
       if (!userId) {
@@ -66,5 +66,5 @@ export const useUserData = (
     refetchOnWindowFocus: false // Don't refetch on window focus
   });
 
-  return { isLoading, refetch };
+  return { data, isLoading, refetch };
 };

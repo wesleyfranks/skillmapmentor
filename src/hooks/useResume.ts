@@ -23,7 +23,7 @@ export const useResume = (userId: string) => {
   
   const { saveResume, deleteResume, deleteKeywords } = useResumeActions(userId);
 
-  const { isLoading, refetch } = useUserData(
+  const { data, isLoading, refetch } = useUserData(
     userId, 
     (loadedText) => {
       console.log('[useResume][Profile][onResumeLoad] Setting resume text from loaded data:', {
@@ -55,6 +55,21 @@ export const useResume = (userId: string) => {
       }
     }
   );
+
+  // Initialize state from data when it loads
+  useState(() => {
+    if (data) {
+      if (data.resume_text) {
+        setResumeText(data.resume_text);
+      }
+      if (data.keywords) {
+        setKeywords(data.keywords);
+      }
+      if (data.non_keywords) {
+        setNonKeywords(data.non_keywords);
+      }
+    }
+  }, [data]);
 
   const handleSaveResume = async () => {
     console.log('[useResume][Profile][handleSaveResume] Saving resume');
