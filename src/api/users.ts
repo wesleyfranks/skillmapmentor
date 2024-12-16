@@ -1,6 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 
 export interface UserData {
   resume_text: string | null;
@@ -44,47 +43,10 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
       throw fetchError;
     }
 
-    // If no user found, create one
+    // If no user data found, return default empty state
+    // We don't create users here anymore since they should be created during signup
     if (!userData) {
-      console.log('[API] User not found in users table, creating new record');
-      
-      const { data: authData, error: authError } = await supabase.auth.getUser();
-      
-      if (authError) {
-        console.error('[API] Error getting auth user:', authError);
-        toast.error("Authentication error");
-        throw authError;
-      }
-
-      const authUser = authData.user;
-      if (!authUser) {
-        toast.error("No authenticated user found");
-        throw new Error('Auth user not found');
-      }
-
-      const newUser = {
-        id: userId,
-        email: authUser.email || '',
-        full_name: authUser.user_metadata?.full_name || null,
-        keywords: [],
-        non_keywords: []
-      };
-
-      const { error: insertError } = await supabase
-        .from('users')
-        .insert([newUser]);
-
-      if (insertError) {
-        console.error('[API] Error creating user:', insertError);
-        if (insertError.code === '42501') {
-          toast.error("You don't have permission to create user data");
-        } else {
-          toast.error("Failed to create user data");
-        }
-        throw insertError;
-      }
-
-      // Return default data for new user
+      console.log('[API] No user data found for authenticated user');
       return {
         resume_text: null,
         keywords: [],
