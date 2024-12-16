@@ -1,74 +1,48 @@
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-export const useUserData = (
-  userId: string, 
-  onResumeLoad: (text: string) => void, 
-  onKeywordsLoad?: (keywords: string[], nonKeywords: string[]) => void
-) => {
+export type UserData = {
+  resume_text: string | null;
+  keywords: string[];
+  non_keywords: string[];
+};
+
+export const useUserData = (userId: string) => {
   return useQuery({
     queryKey: ['userData', userId],
     queryFn: async () => {
       if (!userId) {
-        console.log('[useUserData][queryFn] No userId provided');
+        console.log('[useUserData] No userId provided');
         return null;
       }
 
-      try {
-        console.log('[useUserData][queryFn] Fetching user data:', {
-          userId,
-          timestamp: new Date().toISOString()
-        });
+      console.log('[useUserData] Fetching data for user:', userId);
+      
+      const { data, error } = await supabase
+        .from('users')
+        .select('resume_text, keywords, non_keywords')
+        .eq('id', userId)
+        .single();
 
-        const { data, error } = await supabase
-          .from('users')
-          .select('resume_text, keywords, non_keywords')
-          .eq('id', userId)
-          .single();
-
-        if (error) {
-          console.error('[useUserData][queryFn] Error fetching user data:', error);
-          throw error;
-        }
-
-        console.log('[useUserData][queryFn] Query response:', {
-          hasData: !!data,
-          hasResumeText: !!data?.resume_text,
-          keywordsCount: data?.keywords?.length || 0,
-          nonKeywordsCount: data?.non_keywords?.length || 0
-        });
-
-        // Only call callbacks if we have data
-        if (data) {
-          if (data.resume_text) {
-            console.log('[useUserData][queryFn] Calling onResumeLoad with text length:', 
-              data.resume_text.length);
-            onResumeLoad(data.resume_text);
-          }
-
-          if (onKeywordsLoad) {
-            console.log('[useUserData][queryFn] Calling onKeywordsLoad with:', {
-              keywordsCount: data.keywords?.length || 0,
-              nonKeywordsCount: data.non_keywords?.length || 0
-            });
-            onKeywordsLoad(
-              data.keywords || [], 
-              data.non_keywords || []
-            );
-          }
-        }
-
-        return data;
-      } catch (error: any) {
-        console.error('[useUserData][queryFn] Error in fetchUserData:', error);
-        toast.error("Could not load your data. Please try refreshing the page.");
+      if (error) {
+        console.error('[useUserData] Error fetching data:', error);
         throw error;
       }
+
+      console.log('[useUserData] Successfully fetched data:', {
+        hasResumeText: !!data?.resume_text,
+        keywordsCount: data?.keywords?.length || 0,
+        nonKeywordsCount: data?.non_keywords?.length || 0
+      });
+
+      return {
+        resume_text: data.resume_text || null,
+        keywords: data.keywords || [],
+        non_keywords: data.non_keywords || []
+      } as UserData;
     },
-    staleTime: 1000 * 60 * 5, // Data becomes stale after 5 minutes
-    gcTime: 1000 * 60 * 30, // Cache for 30 minutes
-    refetchOnMount: true,
-    refetchOnWindowFocus: false
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30,   // 30 minutes
+    retry: 1
   });
 };

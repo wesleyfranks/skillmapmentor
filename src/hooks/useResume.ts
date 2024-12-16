@@ -1,127 +1,101 @@
-import { useState, useEffect } from "react";
-import { useKeywordAnalysis } from "./useKeywordAnalysis";
-import { useResumeActions } from "./useResumeActions";
+import { useState } from "react";
 import { useUserData } from "./useUserData";
+import { useResumeActions } from "./useResumeActions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const useResume = (userId: string) => {
-  const [resumeText, setResumeText] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [hasInitialAnalysis, setHasInitialAnalysis] = useState(false);
-  
-  const { 
-    isAnalyzing, 
-    keywords, 
-    nonKeywords,
-    setKeywords, 
-    setNonKeywords,
-    handleReanalyze,
-    addToNonKeywords 
-  } = useKeywordAnalysis(userId);
-  
+
+  const { data: userData, isLoading, refetch } = useUserData(userId);
   const { saveResume, deleteResume, deleteKeywords } = useResumeActions(userId);
 
-  const { data, isLoading, refetch } = useUserData(
-    userId, 
-    (loadedText) => {
-      console.log('[useResume][Profile][onResumeLoad] Setting resume text from loaded data:', {
-        textLength: loadedText?.length,
-        hasText: !!loadedText
-      });
-      if (loadedText) {
-        setResumeText(loadedText);
-        // Only analyze on initial load if we haven't done it yet and there's no keywords
-        if (!hasInitialAnalysis && (!keywords || keywords.length === 0)) {
-          console.log('[useResume][Profile][onResumeLoad] Triggering initial analysis');
-          handleReanalyze(loadedText);
-          setHasInitialAnalysis(true);
+  // Handle initial analysis if needed
+  const handleInitialAnalysis = async (text: string) => {
+    if (!hasInitialAnalysis && text && (!userData?.keywords || userData.keywords.length === 0)) {
+      console.log('[useResume] Starting initial analysis');
+      setIsAnalyzing(true);
+      try {
+        await handleReanalyze(text);
+        setHasInitialAnalysis(true);
+      } finally {
+        setIsAnalyzing(false);
+      }
+    }
+  };
+
+  const handleReanalyze = async (text: string) => {
+    if (!text || isAnalyzing) return;
+    
+    console.log('[useResume] Starting reanalysis');
+    setIsAnalyzing(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-resume', {
+        body: { 
+          resumeText: text,
+          existingKeywords: userData?.keywords || [],
+          nonKeywords: userData?.non_keywords || []
         }
-      }
-    },
-    (loadedKeywords, loadedNonKeywords) => {
-      if (loadedKeywords && loadedKeywords.length > 0) {
-        console.log('[useResume][Profile][onKeywordsLoad] Setting initial keywords:', {
-          keywordsCount: loadedKeywords.length
-        });
-        setKeywords(loadedKeywords);
-      }
-      if (loadedNonKeywords && loadedNonKeywords.length > 0) {
-        console.log('[useResume][Profile][onKeywordsLoad] Setting initial non-keywords:', {
-          nonKeywordsCount: loadedNonKeywords.length
-        });
-        setNonKeywords(loadedNonKeywords);
-      }
-    }
-  );
-
-  // Initialize state from data when it loads
-  useEffect(() => {
-    if (data) {
-      console.log('[useResume][Profile][useEffect] Initializing state from data:', {
-        hasResumeText: !!data.resume_text,
-        keywordsCount: data.keywords?.length,
-        nonKeywordsCount: data.non_keywords?.length
       });
 
-      if (data.resume_text) {
-        setResumeText(data.resume_text);
-      }
-      if (data.keywords) {
-        setKeywords(data.keywords);
-      }
-      if (data.non_keywords) {
-        setNonKeywords(data.non_keywords);
-      }
-    }
-  }, [data]);
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
 
-  const handleSaveResume = async () => {
-    console.log('[useResume][Profile][handleSaveResume] Saving resume');
+      console.log('[useResume] Analysis complete:', data);
+      
+      const keywordList = Array.from(new Set(
+        (data.keywords as string)
+          .split(',')
+          .map(k => k.trim())
+          .filter(k => k && !(userData?.non_keywords || []).includes(k.toLowerCase()))
+      )).sort();
+
+      await supabase
+        .from("users")
+        .update({ keywords: keywordList })
+        .eq("id", userId);
+
+      await refetch();
+      
+      const newKeywordsCount = data.newKeywordsCount || 0;
+      if (newKeywordsCount > 0) {
+        toast.success(`Found ${newKeywordsCount} new keyword${newKeywordsCount === 1 ? '' : 's'}!`);
+      } else {
+        toast.info("Analysis complete. No new keywords found.");
+      }
+    } catch (error: any) {
+      console.error('[useResume] Analysis error:', error);
+      toast.error(error.message || "Error analyzing resume");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleSaveResume = async (text: string) => {
+    console.log('[useResume] Saving resume');
     setIsSaving(true);
     try {
-      const shouldAnalyze = await saveResume(resumeText);
+      const shouldAnalyze = await saveResume(text);
       setIsEditing(false);
+      await refetch();
 
       if (shouldAnalyze) {
-        console.log('[useResume][Profile][handleSaveResume] Initiating resume analysis');
-        await handleReanalyze(resumeText);
+        await handleReanalyze(text);
       }
-      
-      await refetch();
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDeleteResume = async () => {
-    console.log('[useResume][Profile][handleDeleteResume] Deleting resume');
-    const success = await deleteResume();
-    if (success) {
-      setResumeText("");
-      await refetch();
-    }
-  };
-
-  const handleDeleteKeywords = async () => {
-    console.log('[useResume][Profile][handleDeleteKeywords] Deleting keywords');
-    const success = await deleteKeywords();
-    if (success) {
-      setKeywords([]);
-      await refetch();
-    }
-  };
-
-  const handleResumeTextChange = (text: string) => {
-    console.log('[useResume][Profile][handleResumeTextChange] Updating resume text');
-    setResumeText(text);
-  };
-
   const handleUpdateKeywords = async (newKeywords: string[]) => {
-    console.log('[useResume][Profile][handleUpdateKeywords] Updating keywords:', {
+    console.log('[useResume] Updating keywords:', {
       keywordsCount: newKeywords.length
     });
+    
     try {
       const { error } = await supabase
         .from("users")
@@ -129,30 +103,41 @@ export const useResume = (userId: string) => {
         .eq("id", userId);
 
       if (error) throw error;
-      setKeywords(newKeywords);
       await refetch();
     } catch (error) {
-      console.error("[useResume][Profile][handleUpdateKeywords] Error updating keywords:", error);
+      console.error('[useResume] Error updating keywords:', error);
       toast.error("Failed to update keywords");
     }
   };
 
+  // If we have userData, trigger initial analysis
+  if (userData?.resume_text && !hasInitialAnalysis) {
+    handleInitialAnalysis(userData.resume_text);
+  }
+
   return {
-    resumeText,
+    resumeText: userData?.resume_text || "",
+    keywords: userData?.keywords || [],
+    nonKeywords: userData?.non_keywords || [],
     isEditing,
     isSaving,
     isAnalyzing,
-    keywords,
     isLoading,
-    setResumeText,
-    setKeywords,
     setIsEditing,
     handleSaveResume,
-    handleDeleteResume,
-    handleDeleteKeywords,
-    handleResumeTextChange,
-    handleReanalyze: () => handleReanalyze(resumeText),
+    handleDeleteResume: async () => {
+      const success = await deleteResume();
+      if (success) await refetch();
+    },
+    handleDeleteKeywords: async () => {
+      const success = await deleteKeywords();
+      if (success) await refetch();
+    },
+    handleResumeTextChange: (text: string) => {
+      // This will be handled by the form directly
+      console.log('[useResume] Text changed:', { length: text.length });
+    },
+    handleReanalyze: () => handleReanalyze(userData?.resume_text || ""),
     handleUpdateKeywords,
-    handleAddToNonKeywords: addToNonKeywords,
   };
 };
