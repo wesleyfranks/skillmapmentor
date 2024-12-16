@@ -43,12 +43,20 @@ export const useUserData = (
         // If no data exists, create a new user record
         if (!data) {
           console.log('No user data found, creating new user record');
+          
+          // First check if the user exists in auth.users
+          const { data: authUser } = await supabase.auth.getUser();
+          
+          if (!authUser?.user) {
+            throw new Error('No authenticated user found');
+          }
+
           const { data: newUser, error: insertError } = await supabase
             .from('users')
-            .insert({
+            .upsert({
               id: userId,
-              email: session.user.email,
-              full_name: session.user.user_metadata?.full_name
+              email: authUser.user.email,
+              full_name: authUser.user.user_metadata?.full_name
             })
             .select('resume_text, keywords, non_keywords')
             .single();
