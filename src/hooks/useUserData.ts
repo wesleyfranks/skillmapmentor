@@ -39,7 +39,11 @@ export const useUserData = (
             console.log('No user data found, creating new user record');
             const { data: newUser, error: insertError } = await supabase
               .from('users')
-              .insert([{ id: userId }])
+              .insert({
+                id: userId,
+                email: session.user.email,
+                full_name: session.user.user_metadata?.full_name
+              })
               .select()
               .single();
 
