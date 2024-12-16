@@ -29,6 +29,13 @@ export const useUserData = (
           .limit(1)
           .maybeSingle();
 
+        console.log('[useUserData][queryFn] Query response:', {
+          hasData: !!data,
+          hasError: !!error,
+          error: error?.message,
+          data
+        });
+
         if (error) {
           console.error('[useUserData][queryFn] Error fetching user data:', error);
           throw error;
