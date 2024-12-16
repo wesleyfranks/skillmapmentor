@@ -10,8 +10,11 @@ const Profile = () => {
   const { user } = useAuth();
 
   if (!user) {
+    console.log('[Profile] No user found, redirecting to login');
     return <Navigate to="/login" replace />;
   }
+
+  console.log('[Profile] Rendering for user:', user.id);
 
   const {
     resumeText,
@@ -28,6 +31,14 @@ const Profile = () => {
     handleReanalyze,
     handleUpdateKeywords,
   } = useResume(user.id);
+
+  console.log('[Profile] Current state:', {
+    hasResumeText: !!resumeText,
+    keywordsCount: keywords.length,
+    isLoading,
+    isEditing,
+    isAnalyzing
+  });
 
   return (
     <div className="container mx-auto px-4 py-8">
