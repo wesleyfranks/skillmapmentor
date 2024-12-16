@@ -69,17 +69,14 @@ export const SignUpForm = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data, error } = await signUp(email, password, fullName);
-      
-      if (error) {
-        if (error.message.includes("already registered")) {
-          toast.error("This email is already registered. Please try logging in instead.");
-        } else {
-          toast.error(error.message);
-        }
-      } else if (data) {
-        toast.success("Account created successfully!");
-        navigate("/profile");
+      await signUp(email, password, fullName);
+      // The success toast is now handled in the auth.ts file
+      navigate("/profile");
+    } catch (error: any) {
+      if (error.message.includes("already registered")) {
+        toast.error("This email is already registered. Please try logging in instead.");
+      } else {
+        toast.error(error.message);
       }
     } finally {
       setLoading(false);
