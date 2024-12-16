@@ -42,15 +42,23 @@ export const useUserData = (
             source: 'database'
           });
 
+          // Only call callbacks if we actually have data
           if (data.resume_text) {
-            console.log('[useUserData][queryFn] Calling onResumeLoad with text');
+            console.log('[useUserData][queryFn] Calling onResumeLoad with text:', {
+              textLength: data.resume_text.length
+            });
             onResumeLoad(data.resume_text);
           }
 
           if (onKeywordsLoad && (data.keywords || data.non_keywords)) {
-            console.log('[useUserData][queryFn] Calling onKeywordsLoad with keywords and non-keywords');
+            console.log('[useUserData][queryFn] Calling onKeywordsLoad with:', {
+              keywordsCount: data.keywords?.length || 0,
+              nonKeywordsCount: data.non_keywords?.length || 0
+            });
             onKeywordsLoad(data.keywords || [], data.non_keywords || []);
           }
+        } else {
+          console.log('[useUserData][queryFn] No data found for user');
         }
 
         return data;
