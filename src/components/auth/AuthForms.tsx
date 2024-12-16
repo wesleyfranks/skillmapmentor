@@ -70,15 +70,9 @@ export const SignUpForm = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await signUp(email, password, fullName);
-      navigate("/profile");
-    } catch (error: any) {
-      if (error.message.includes("User already registered")) {
-        toast({
-          variant: "destructive",
-          title: "Email already registered",
-          description: "Please use a different email address or try logging in instead.",
-        });
+      const { error } = await signUp(email, password, fullName);
+      if (!error) {
+        navigate("/profile");
       } else {
         toast({
           variant: "destructive",
