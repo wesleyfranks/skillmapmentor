@@ -39,13 +39,13 @@ export const ResumeContent = ({
       icon: isEditing ? Save : Edit,
       onClick: isEditing ? onSave : onEdit,
       isProcessing: isSaving,
-      variant: (isEditing ? 'default' : 'outline') as const,
+      variant: isEditing ? ("default" as const) : ("outline" as const),
     },
     {
       label: 'Delete Resume',
       icon: Trash,
       onClick: () => setShowDeleteDialog(true),
-      variant: 'destructive' as const,
+      variant: "destructive" as const,
       disabled: !resumeText || isEditing,
       stretch: true,
     },
@@ -55,7 +55,7 @@ export const ResumeContent = ({
       onClick: onUpload,
       isProcessing: isUploading,
       disabled: isEditing,
-      variant: 'default' as const,
+      variant: "default" as const,
     }
   ];
 
