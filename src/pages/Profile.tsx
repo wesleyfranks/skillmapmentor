@@ -73,7 +73,7 @@ const Profile = () => {
                     isEditing={isEditing}
                     isSaving={isSaving}
                     onEdit={() => setIsEditing(!isEditing)}
-                    onSave={handleSaveResume}
+                    onSave={(text: string) => handleSaveResume(text)}
                     onDelete={handleDeleteResume}
                     onChange={handleResumeTextChange}
                     userId={user.id}
