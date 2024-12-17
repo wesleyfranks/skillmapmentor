@@ -8,6 +8,7 @@ interface KeywordsToolbarProps {
   onRemoveDuplicates: () => void;
   onCopyKeywords: () => void;
   onDeleteAll: () => void;
+  showAnalyzeButton: boolean;
 }
 
 export const KeywordsToolbar = ({
@@ -17,6 +18,7 @@ export const KeywordsToolbar = ({
   onRemoveDuplicates,
   onCopyKeywords,
   onDeleteAll,
+  showAnalyzeButton,
 }: KeywordsToolbarProps) => {
   const hasKeywords = keywordsCount > 0;
 
@@ -47,7 +49,7 @@ export const KeywordsToolbar = ({
         size="sm"
         onClick={onDeleteAll}
         disabled={!hasKeywords || isAnalyzing}
-        className="text-destructive hover:text-destructive-foreground hover:bg-destructive w-full flex items-center justify-center gap-2"
+        className="text-destructive hover:text-destructive-foreground hover:bg-destructive w-full flex items-center justify-center gap-2 sm:col-span-1"
       >
         <Trash2 className="h-4 w-4" />
         <span>Clear All</span>
@@ -57,7 +59,7 @@ export const KeywordsToolbar = ({
         size="sm"
         onClick={onReanalyze}
         disabled={isAnalyzing}
-        className="bg-primary hover:bg-primary/90 w-full flex items-center justify-center gap-2"
+        className="bg-primary hover:bg-primary/90 w-full flex items-center justify-center gap-2 sm:col-span-1"
       >
         <RefreshCw className={`h-4 w-4 ${isAnalyzing ? 'animate-spin' : ''}`} />
         <span>{isAnalyzing ? "Analyzing..." : "Analyze"}</span>

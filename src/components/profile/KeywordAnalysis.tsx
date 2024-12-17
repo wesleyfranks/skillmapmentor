@@ -142,29 +142,22 @@ export const KeywordAnalysis = ({
   return (
     <div className="space-y-6">
       <div className="h-[52px]">
-        {keywords.length > 0 && (
-          <KeywordsToolbar
-            keywordsCount={keywords.length}
-            isAnalyzing={isAnalyzing}
-            onReanalyze={onReanalyze}
-            onRemoveDuplicates={handleRemoveDuplicates}
-            onCopyKeywords={handleCopyKeywords}
-            onDeleteAll={onDeleteKeywords}
-          />
-        )}
+        <KeywordsToolbar
+          keywordsCount={keywords.length}
+          isAnalyzing={isAnalyzing}
+          onReanalyze={onReanalyze}
+          onRemoveDuplicates={handleRemoveDuplicates}
+          onCopyKeywords={handleCopyKeywords}
+          onDeleteAll={onDeleteKeywords}
+          showAnalyzeButton={true}
+        />
       </div>
       {!resumeText ? (
-        <div className="h-[300px] border border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-col items-center justify-center space-y-4 mt-6 mt-4">
+        <div className="h-[300px] border border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-col items-center justify-center space-y-4 mt-6">
           <FileX className="w-12 h-12 text-gray-400" />
           <p className="text-lg font-semibold text-gray-500 uppercase tracking-wide">
             No Keywords Available
           </p>
-          <button
-            onClick={onReanalyze}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
-          >
-            Analyze
-          </button>
         </div>
       ) : (
         content
