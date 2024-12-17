@@ -47,7 +47,8 @@ export const ResumeToolbar = ({
     onClick: onUpload,
     isProcessing: isUploading,
     variant: "default",
-    disabled: isUploading
+    disabled: isUploading,
+    stretch: true // Add this line to make the Upload PDF button stretch
   });
 
   return (
