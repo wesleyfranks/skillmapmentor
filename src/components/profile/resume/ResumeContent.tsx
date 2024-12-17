@@ -39,7 +39,7 @@ export const ResumeContent = ({
       icon: isEditing ? Save : Edit,
       onClick: isEditing ? onSave : onEdit,
       isProcessing: isSaving,
-      variant: isEditing ? 'default' : ('outline' as const),
+      variant: (isEditing ? 'default' : 'outline') as const,
     },
     {
       label: 'Delete Resume',
