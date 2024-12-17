@@ -35,28 +35,28 @@ export const ResumeContent = ({
 }: ResumeContentProps) => {
   const toolbarActions = [
     {
-      label: isEditing ? "Save" : "Manual",
+      label: isEditing ? 'Save' : 'Manual',
       icon: isEditing ? Save : Edit,
       onClick: isEditing ? onSave : onEdit,
       isProcessing: isSaving,
-      variant: isEditing ? "default" : "outline" as const,
+      variant: isEditing ? 'default' : ('outline' as const),
     },
     {
-      label: "Upload",
+      label: 'Delete Resume',
+      icon: Trash,
+      onClick: () => setShowDeleteDialog(true),
+      variant: 'destructive' as const,
+      disabled: !resumeText || isEditing,
+      stretch: true,
+    },
+    {
+      label: 'Upload',
       icon: Upload,
       onClick: onUpload,
       isProcessing: isUploading,
       disabled: isEditing,
-      variant: "default" as const,
-    },
-    {
-      label: "Delete Resume",
-      icon: Trash,
-      onClick: () => setShowDeleteDialog(true),
-      variant: "destructive" as const,
-      disabled: !resumeText || isEditing,
-      stretch: true,
-    },
+      variant: 'default' as const,
+    }
   ];
 
   if (!resumeText && !isEditing) {
