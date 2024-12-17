@@ -68,51 +68,11 @@ export const KeywordAnalysis = ({
     }
   };
 
-  const handleRemoveDuplicates = () => {
-    if (onUpdateKeywords) {
-      const seen = new Set<string>();
-      const duplicates = new Set<string>();
-      
-      // First pass: identify duplicates
-      keywords.forEach(keyword => {
-        const lowercase = keyword.toLowerCase();
-        if (seen.has(lowercase)) {
-          duplicates.add(lowercase);
-        }
-        seen.add(lowercase);
-      });
-
-      // Second pass: keep only first occurrence of each keyword
-      seen.clear();
-      const uniqueKeywords = keywords.filter(keyword => {
-        const lowercase = keyword.toLowerCase();
-        if (seen.has(lowercase)) {
-          return false;
-        }
-        seen.add(lowercase);
-        return true;
-      });
-      
-      const removedCount = keywords.length - uniqueKeywords.length;
-      
-      if (removedCount > 0) {
-        onUpdateKeywords(uniqueKeywords);
-        const duplicatesList = Array.from(duplicates).join(', ');
-        toast.success(
-          `Removed ${removedCount} duplicate${removedCount === 1 ? '' : 's'}: ${duplicatesList}`
-        );
-      } else {
-        toast.info('No duplicate keywords found');
-      }
-    }
-  };
-
   const handleCopyKeywords = async () => {
     try {
       setIsCopying(true);
       await navigator.clipboard.writeText(keywords.join(', '));
       toast.success('Keywords copied to clipboard');
-      // Increased timing from 200ms to 1000ms (1 second)
       setTimeout(() => setIsCopying(false), 1000);
     } catch (error) {
       toast.error('Failed to copy keywords');
@@ -128,7 +88,6 @@ export const KeywordAnalysis = ({
           isAnalyzing={isAnalyzing}
           isCopying={isCopying}
           onCopy={handleCopyKeywords}
-          onRemoveDuplicates={handleRemoveDuplicates}
           onDelete={onDeleteKeywords!}
           onReanalyze={onReanalyze}
         />

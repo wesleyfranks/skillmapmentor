@@ -1,13 +1,12 @@
 import { type ToolbarAction } from "@/components/ui/Toolbar";
 import { Toolbar } from "@/components/ui/Toolbar";
-import { Copy, Filter, Trash2, RotateCw, CheckSquare } from "lucide-react";
+import { Copy, Trash2, RotateCw, CheckSquare } from "lucide-react";
 
 interface KeywordToolbarProps {
   keywords: string[];
   isAnalyzing: boolean;
   isCopying: boolean;
   onCopy: () => void;
-  onRemoveDuplicates: () => void;
   onDelete: () => void;
   onReanalyze: () => void;
 }
@@ -17,7 +16,6 @@ export const KeywordToolbar = ({
   isAnalyzing,
   isCopying,
   onCopy,
-  onRemoveDuplicates,
   onDelete,
   onReanalyze,
 }: KeywordToolbarProps) => {
@@ -32,13 +30,6 @@ export const KeywordToolbar = ({
       iconClassName: isCopying ? "text-white" : undefined
     },
     {
-      label: "Remove Duplicates",
-      icon: Filter,
-      onClick: onRemoveDuplicates,
-      disabled: !keywords.length || isAnalyzing,
-      variant: "outline"
-    },
-    {
       label: "Clear All",
       icon: Trash2,
       onClick: onDelete,
@@ -50,7 +41,8 @@ export const KeywordToolbar = ({
       icon: RotateCw,
       onClick: onReanalyze,
       isProcessing: isAnalyzing,
-      variant: "default"
+      variant: "default",
+      stretch: true
     }
   ];
 
