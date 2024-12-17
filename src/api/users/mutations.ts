@@ -66,7 +66,7 @@ export const addToNonKeywords = async (userId: string, keyword: string, currentK
       return false;
     }
 
-    toast.success(`Added "${keyword}" to non-keywords list`);
+    toast.success(`Removed "${keyword}" from keywords and added to non-keywords list`);
     return true;
   } catch (error) {
     console.error('[API] Error adding to non-keywords:', error);
