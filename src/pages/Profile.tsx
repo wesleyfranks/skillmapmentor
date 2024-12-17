@@ -2,12 +2,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Navigate } from "react-router-dom";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
-import { ResumeEditor } from "@/components/profile/resume/ResumeEditor";
+import { ResumeContent } from "@/components/profile/resume/ResumeContent";
+import { ResumeToolbar } from "@/components/profile/resume/ResumeToolbar";
 import { KeywordAnalysis } from "@/components/profile/keywords/KeywordAnalysis";
 import { useResume } from "@/hooks/useResume";
+import { useState } from "react";
 
 const Profile = () => {
   const { user } = useAuth();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   if (!user) {
     console.log('[Profile] No user found, redirecting to login');
@@ -40,6 +44,11 @@ const Profile = () => {
     isAnalyzing
   });
 
+  const handleUpload = () => {
+    setIsUploading(true);
+    // Implement upload functionality here
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-7xl mx-auto">
@@ -68,15 +77,22 @@ const Profile = () => {
               <div className="order-2">
                 <h2 className="text-2xl font-bold text-center mb-6">Resume</h2>
                 <div className="h-full">
-                  <ResumeEditor
+                  <ResumeToolbar
                     resumeText={resumeText}
                     isEditing={isEditing}
-                    isSaving={isSaving}
+                    isUploading={isUploading}
                     onEdit={() => setIsEditing(!isEditing)}
-                    onSave={handleSaveResume}
+                    onUpload={handleUpload}
+                    showDeleteDialog={showDeleteDialog}
+                    setShowDeleteDialog={setShowDeleteDialog}
                     onDelete={handleDeleteResume}
+                  />
+                  <ResumeContent
+                    isEditing={isEditing}
+                    resumeText={resumeText}
                     onChange={handleResumeTextChange}
-                    userId={user.id}
+                    onSave={() => handleSaveResume(resumeText)}
+                    isSaving={isSaving}
                   />
                 </div>
               </div>
