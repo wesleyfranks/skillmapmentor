@@ -9,6 +9,7 @@ export interface ToolbarAction {
   isProcessing?: boolean;
   disabled?: boolean;
   stretch?: boolean;
+  iconClassName?: string;
 }
 
 interface ToolbarProps {
@@ -36,7 +37,9 @@ export const Toolbar = ({ actions }: ToolbarProps) => {
                 : "bg-background hover:bg-accent border border-input"
             }`}
           >
-            <Icon className={`h-4 w-4 ${action.isProcessing ? "animate-spin" : ""}`} />
+            <Icon 
+              className={`h-4 w-4 ${action.isProcessing ? "animate-spin" : ""} ${action.iconClassName || ""}`}
+            />
             <span className="font-medium">{action.label}</span>
           </Button>
         );

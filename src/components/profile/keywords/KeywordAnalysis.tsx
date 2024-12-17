@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { KeywordsList } from "./KeywordsList";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Toolbar, type ToolbarAction } from "@/components/ui/Toolbar";
-import { Search, Copy, Filter, Trash2, RotateCw } from "lucide-react";
+import { Search, Copy, Filter, Trash2, RotateCw, CheckSquare } from "lucide-react";
 
 interface KeywordAnalysisProps {
   resumeText: string;
@@ -109,11 +109,11 @@ export const KeywordAnalysis = ({
   const toolbarActions: ToolbarAction[] = [
     {
       label: "Copy All",
-      icon: Copy,
+      icon: isCopying ? CheckSquare : Copy,
       onClick: handleCopyKeywords,
       disabled: !keywords.length || isAnalyzing,
       variant: "outline",
-      className: `transition-transform duration-200 ${isCopying ? 'scale-95 opacity-80' : ''}`
+      iconClassName: isCopying ? "text-green-500" : undefined
     },
     {
       label: "Remove Duplicates",
