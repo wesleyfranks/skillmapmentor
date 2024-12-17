@@ -78,7 +78,11 @@ export const KeywordsList = ({
               <span>{keyword}</span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-6 w-6">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-2 p-0 shrink-0 inline-flex"
+                  >
                     <MoreVertical className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
