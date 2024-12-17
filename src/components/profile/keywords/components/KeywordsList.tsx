@@ -93,7 +93,7 @@ export const KeywordsList = ({
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onAddToNonKeywords?.(keyword)}>
                     <Ban className="mr-2 h-4 w-4" />
-                    <span>Add to non-keywords</span>
+                    <span>Non-Keyword</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => handleDelete(index)}
