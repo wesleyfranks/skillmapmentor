@@ -3,7 +3,6 @@ import { Card } from "@/components/ui/card";
 import { Navigate } from "react-router-dom";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ResumeContent } from "@/components/profile/resume/ResumeContent";
-import { ResumeToolbar } from "@/components/profile/resume/ResumeToolbar";
 import { KeywordAnalysis } from "@/components/profile/keywords/KeywordAnalysis";
 import { useResume } from "@/hooks/useResume";
 import { useState } from "react";
@@ -77,22 +76,18 @@ const Profile = () => {
               <div className="order-2">
                 <h2 className="text-2xl font-bold text-center mb-6">Resume</h2>
                 <div className="h-full">
-                  <ResumeToolbar
-                    resumeText={resumeText}
-                    isEditing={isEditing}
-                    isUploading={isUploading}
-                    onEdit={() => setIsEditing(!isEditing)}
-                    onUpload={handleUpload}
-                    showDeleteDialog={showDeleteDialog}
-                    setShowDeleteDialog={setShowDeleteDialog}
-                    onDelete={handleDeleteResume}
-                  />
                   <ResumeContent
                     isEditing={isEditing}
                     resumeText={resumeText}
                     onChange={handleResumeTextChange}
                     onSave={() => handleSaveResume(resumeText)}
                     isSaving={isSaving}
+                    onEdit={() => setIsEditing(!isEditing)}
+                    onUpload={handleUpload}
+                    isUploading={isUploading}
+                    showDeleteDialog={showDeleteDialog}
+                    setShowDeleteDialog={setShowDeleteDialog}
+                    onDelete={handleDeleteResume}
                   />
                 </div>
               </div>
