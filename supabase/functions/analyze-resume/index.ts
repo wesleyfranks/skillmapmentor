@@ -20,7 +20,12 @@ serve(async (req) => {
       throw new Error('Resume text is required');
     }
 
-    console.log('Analyzing resume with existing keywords:', existingKeywords);
+    // Remove duplicates from existing keywords before sending to ChatGPT
+    const uniqueExistingKeywords = Array.from(new Set(
+      existingKeywords.map((k: string) => k.toLowerCase())
+    ));
+
+    console.log('Analyzing resume with unique existing keywords:', uniqueExistingKeywords);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -35,7 +40,7 @@ serve(async (req) => {
             role: 'system',
             content: `You are a resume keyword analyzer. Your task is to:
 1. Review the provided resume text
-2. Consider the existing keywords: ${existingKeywords.join(', ')}
+2. Consider the existing keywords: ${uniqueExistingKeywords.join(', ')}
 3. Extract additional relevant keywords that are not in the existing list
 4. Focus on skills, technologies, job titles, and notable achievements
 5. Return ONLY new keywords as a comma-separated list, with no explanations or additional text
@@ -60,10 +65,16 @@ serve(async (req) => {
     console.log('New keywords found:', newKeywords);
     
     // Combine existing and new keywords, removing duplicates using Set
-    const allKeywords = [...new Set([
-      ...existingKeywords,
-      ...newKeywords
-    ])].filter(k => k !== '');
+    // This time we preserve the original case of the first occurrence
+    const seen = new Set<string>();
+    const allKeywords = [...existingKeywords, ...newKeywords].filter(keyword => {
+      const lowercase = keyword.toLowerCase();
+      if (seen.has(lowercase)) {
+        return false;
+      }
+      seen.add(lowercase);
+      return true;
+    });
 
     console.log('Final keywords after deduplication:', allKeywords);
 
