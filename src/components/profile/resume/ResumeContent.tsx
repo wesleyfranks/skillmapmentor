@@ -6,7 +6,7 @@ interface ResumeContentProps {
   isEditing: boolean;
   resumeText: string;
   onChange: (text: string) => void;
-  onSave: (text: string) => void;
+  onSave: () => void;
   isSaving: boolean;
 }
 

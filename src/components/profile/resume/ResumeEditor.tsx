@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 interface ResumeEditorProps {
   resumeText: string;
   onChange: (text: string) => void;
-  onSave: (text: string) => void;
+  onSave: () => void;
   isSaving: boolean;
 }
 
@@ -62,7 +62,7 @@ export const ResumeEditor = ({
           }}
         />
       </div>
-      <Button onClick={() => onSave(resumeText)} disabled={isSaving} className="mt-4">
+      <Button onClick={onSave} disabled={isSaving} className="mt-4">
         {isSaving ? (
           <div className="flex items-center gap-2">
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>

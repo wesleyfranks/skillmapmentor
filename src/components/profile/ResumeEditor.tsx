@@ -74,7 +74,7 @@ export const ResumeEditor = ({
           isEditing={isEditing}
           resumeText={resumeText}
           onChange={onChange}
-          onSave={onSave}
+          onSave={() => onSave(resumeText)}
           isSaving={isSaving}
         />
       </div>
