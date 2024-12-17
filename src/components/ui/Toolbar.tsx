@@ -10,6 +10,7 @@ export interface ToolbarAction {
   disabled?: boolean;
   stretch?: boolean;
   iconClassName?: string;
+  className?: string;
 }
 
 interface ToolbarProps {
@@ -32,10 +33,12 @@ export const Toolbar = ({ actions }: ToolbarProps) => {
             } ${
               action.variant === "destructive"
                 ? "bg-red-500 hover:bg-red-600 text-white border-0"
-                : action.variant === "default"
+                : action.variant === "default" && !action.className
                 ? "bg-primary hover:bg-primary/90"
-                : "bg-background hover:bg-accent border border-input"
-            }`}
+                : !action.className
+                ? "bg-background hover:bg-accent border border-input"
+                : ""
+            } ${action.className || ""}`}
           >
             <Icon 
               className={`h-4 w-4 ${action.isProcessing ? "animate-spin" : ""} ${action.iconClassName || ""}`}

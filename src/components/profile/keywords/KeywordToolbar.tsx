@@ -27,8 +27,9 @@ export const KeywordToolbar = ({
       icon: isCopying ? CheckSquare : Copy,
       onClick: onCopy,
       disabled: !keywords.length || isAnalyzing,
-      variant: "outline",
-      iconClassName: isCopying ? "text-green-500" : undefined
+      variant: isCopying ? "default" : "outline",
+      className: isCopying ? "bg-green-500 hover:bg-green-600 border-0" : undefined,
+      iconClassName: isCopying ? "text-white" : undefined
     },
     {
       label: "Remove Duplicates",

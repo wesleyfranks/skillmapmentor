@@ -95,10 +95,11 @@ export const KeywordAnalysis = ({
       setIsCopying(true);
       await navigator.clipboard.writeText(keywords.join(', '));
       toast.success('Keywords copied to clipboard');
+      // Increased timing from 200ms to 1000ms (1 second)
+      setTimeout(() => setIsCopying(false), 1000);
     } catch (error) {
       toast.error('Failed to copy keywords');
-    } finally {
-      setTimeout(() => setIsCopying(false), 200);
+      setIsCopying(false);
     }
   };
 
