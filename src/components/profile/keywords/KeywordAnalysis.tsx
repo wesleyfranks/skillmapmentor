@@ -71,6 +71,19 @@ export const KeywordAnalysis = ({
   const handleRemoveDuplicates = () => {
     if (onUpdateKeywords) {
       const seen = new Set<string>();
+      const duplicates = new Set<string>();
+      
+      // First pass: identify duplicates
+      keywords.forEach(keyword => {
+        const lowercase = keyword.toLowerCase();
+        if (seen.has(lowercase)) {
+          duplicates.add(lowercase);
+        }
+        seen.add(lowercase);
+      });
+
+      // Second pass: keep only first occurrence of each keyword
+      seen.clear();
       const uniqueKeywords = keywords.filter(keyword => {
         const lowercase = keyword.toLowerCase();
         if (seen.has(lowercase)) {
@@ -80,10 +93,14 @@ export const KeywordAnalysis = ({
         return true;
       });
       
-      if (uniqueKeywords.length !== keywords.length) {
-        const removedCount = keywords.length - uniqueKeywords.length;
+      const removedCount = keywords.length - uniqueKeywords.length;
+      
+      if (removedCount > 0) {
         onUpdateKeywords(uniqueKeywords);
-        toast.success(`Removed ${removedCount} duplicate keyword${removedCount === 1 ? '' : 's'}`);
+        const duplicatesList = Array.from(duplicates).join(', ');
+        toast.success(
+          `Removed ${removedCount} duplicate${removedCount === 1 ? '' : 's'}: ${duplicatesList}`
+        );
       } else {
         toast.info('No duplicate keywords found');
       }
