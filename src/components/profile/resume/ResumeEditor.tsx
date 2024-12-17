@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 interface ResumeEditorProps {
   resumeText: string;
   onChange: (text: string) => void;
-  onSave: () => void;
+  onSave: () => void;  // Keep this as () => void since we handle the text in parent
   isSaving: boolean;
 }
 

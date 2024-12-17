@@ -8,7 +8,7 @@ interface ResumeEditorProps {
   isEditing: boolean;
   isSaving: boolean;
   onEdit: () => void;
-  onSave: () => void;
+  onSave: (text: string) => void;  // Updated type to accept string parameter
   onDelete: () => void;
   onChange: (text: string) => void;
   userId: string;
@@ -43,7 +43,7 @@ export const ResumeEditor = ({
 
   return (
     <div className="space-y-6">
-      <div className="h-[52px]"> {/* Fixed height container for toolbar */}
+      <div className="h-[52px]">
         <ResumeToolbar
           resumeText={resumeText}
           isEditing={isEditing}
@@ -74,7 +74,7 @@ export const ResumeEditor = ({
           isEditing={isEditing}
           resumeText={resumeText}
           onChange={onChange}
-          onSave={onSave}
+          onSave={() => onSave(resumeText)}
           isSaving={isSaving}
         />
       </div>
