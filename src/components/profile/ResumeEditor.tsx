@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ResumeContent } from "./ResumeContent";
+import { ResumeContent } from "./resume/ResumeContent";
 import { ResumeToolbar } from "./ResumeToolbar";
 import { usePdfHandler } from "@/hooks/usePdfHandler";
 
@@ -8,7 +8,7 @@ interface ResumeEditorProps {
   isEditing: boolean;
   isSaving: boolean;
   onEdit: () => void;
-  onSave: (text: string) => void;  // Updated type to accept string parameter
+  onSave: (text: string) => void;
   onDelete: () => void;
   onChange: (text: string) => void;
   userId: string;
@@ -74,7 +74,7 @@ export const ResumeEditor = ({
           isEditing={isEditing}
           resumeText={resumeText}
           onChange={onChange}
-          onSave={() => onSave(resumeText)}
+          onSave={onSave}
           isSaving={isSaving}
         />
       </div>
