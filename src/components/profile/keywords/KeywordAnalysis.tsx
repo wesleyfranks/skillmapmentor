@@ -1,11 +1,7 @@
-import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { KeywordsList } from "./KeywordsList";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Toolbar, type ToolbarAction } from "@/components/ui/Toolbar";
-import { Search, Copy, Filter, Trash2, RotateCw, CheckSquare } from "lucide-react";
+import { KeywordToolbar } from "./KeywordToolbar";
+import { KeywordContent } from "./KeywordContent";
 
 interface KeywordAnalysisProps {
   resumeText: string;
@@ -106,86 +102,32 @@ export const KeywordAnalysis = ({
     }
   };
 
-  const toolbarActions: ToolbarAction[] = [
-    {
-      label: "Copy All",
-      icon: isCopying ? CheckSquare : Copy,
-      onClick: handleCopyKeywords,
-      disabled: !keywords.length || isAnalyzing,
-      variant: "outline",
-      iconClassName: isCopying ? "text-green-500" : undefined
-    },
-    {
-      label: "Remove Duplicates",
-      icon: Filter,
-      onClick: handleRemoveDuplicates,
-      disabled: !keywords.length || isAnalyzing,
-      variant: "outline"
-    },
-    {
-      label: "Clear All",
-      icon: Trash2,
-      onClick: onDeleteKeywords!,
-      disabled: !keywords.length || isAnalyzing,
-      variant: "destructive"
-    },
-    {
-      label: isAnalyzing ? "Analyzing..." : "Analyze",
-      icon: RotateCw,
-      onClick: onReanalyze,
-      isProcessing: isAnalyzing,
-      variant: "default"
-    }
-  ];
-
-  const content = (
-    <div className="bg-muted/50 rounded-lg p-4 min-h-[100px] max-h-[500px] overflow-y-auto mt-6">
-      {isAnalyzing ? (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <div className="text-sm text-muted-foreground">
-              {progress < 30 && "Initializing analysis..."}
-              {progress >= 30 && progress < 70 && "Processing resume content..."}
-              {progress >= 70 && progress < 90 && "Extracting keywords..."}
-              {progress >= 90 && "Finalizing results..."}
-            </div>
-          </div>
-          <Progress value={progress} className="w-full" />
-          <div className="flex flex-wrap gap-2">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-6 w-20" />
-            ))}
-          </div>
-        </div>
-      ) : (
-        keywords.length > 0 && (
-          <KeywordsList
-            keywords={keywords}
-            editingKeyword={editingKeyword}
-            onEdit={handleEditKeyword}
-            onSave={handleSaveKeyword}
-            onCancel={() => setEditingKeyword(null)}
-            onDelete={handleDeleteKeyword}
-            onEditingChange={(index, value) => setEditingKeyword({ index, value })}
-            onAddToNonKeywords={onAddToNonKeywords!}
-          />
-        )
-      )}
-    </div>
-  );
-
   return (
     <div className="space-y-4">
       <div className="h-[110px]">
-        <Toolbar actions={toolbarActions} />
+        <KeywordToolbar
+          keywords={keywords}
+          isAnalyzing={isAnalyzing}
+          isCopying={isCopying}
+          onCopy={handleCopyKeywords}
+          onRemoveDuplicates={handleRemoveDuplicates}
+          onDelete={onDeleteKeywords!}
+          onReanalyze={onReanalyze}
+        />
       </div>
-      {!resumeText ? (
-        <EmptyState icon={Search} message="NO KEYWORDS AVAILABLE" />
-      ) : keywords.length === 0 && !isAnalyzing ? (
-        <EmptyState icon={Search} message="NO KEYWORDS AVAILABLE" />
-      ) : (
-        content
-      )}
+      <KeywordContent
+        resumeText={resumeText}
+        isAnalyzing={isAnalyzing}
+        keywords={keywords}
+        progress={progress}
+        editingKeyword={editingKeyword}
+        onEditKeyword={handleEditKeyword}
+        onSaveKeyword={handleSaveKeyword}
+        onCancelEdit={() => setEditingKeyword(null)}
+        onDeleteKeyword={handleDeleteKeyword}
+        onEditingChange={(index, value) => setEditingKeyword({ index, value })}
+        onAddToNonKeywords={onAddToNonKeywords}
+      />
     </div>
   );
 };
