@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Pencil, Ban } from "lucide-react";
+import { toast } from "sonner";
 
 interface KeywordsListProps {
   keywords: string[];
@@ -29,6 +30,11 @@ export const KeywordsList = ({
     } else if (e.key === 'Escape') {
       onCancel();
     }
+  };
+
+  const handleDelete = (index: number) => {
+    toast.success(`Removed "${keywords[index]}" from keywords list`);
+    onDelete(index);
   };
 
   return (
@@ -86,7 +92,7 @@ export const KeywordsList = ({
                   variant="ghost"
                   size="sm"
                   className="h-6 w-6 p-0 text-destructive"
-                  onClick={() => onDelete(index)}
+                  onClick={() => handleDelete(index)}
                 >
                   <X className="h-3 w-3" />
                 </Button>
