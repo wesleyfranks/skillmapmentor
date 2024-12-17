@@ -25,6 +25,7 @@ const Profile = () => {
     isSaving,
     isAnalyzing,
     keywords,
+    nonKeywords,
     isLoading,
     setIsEditing,
     handleSaveResume,
@@ -33,11 +34,13 @@ const Profile = () => {
     handleResumeTextChange,
     handleReanalyze,
     handleUpdateKeywords,
+    handleAddToNonKeywords,
   } = useResume(user.id);
 
   console.log('[Profile] Current state:', {
     hasResumeText: !!resumeText,
     keywordsCount: keywords.length,
+    nonKeywordsCount: nonKeywords.length,
     isLoading,
     isEditing,
     isAnalyzing
@@ -69,6 +72,7 @@ const Profile = () => {
                     onReanalyze={handleReanalyze}
                     onDeleteKeywords={handleDeleteKeywords}
                     onUpdateKeywords={handleUpdateKeywords}
+                    onAddToNonKeywords={handleAddToNonKeywords}
                   />
                 </div>
               </div>

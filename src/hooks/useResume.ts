@@ -1,6 +1,7 @@
 import { useUserData } from "./useUserData";
 import { useResumeText } from "./useResumeText";
 import { useKeywords } from "./useKeywords";
+import { addToNonKeywords } from "@/api/users/mutations";
 
 export const useResume = (userId: string) => {
   const { data: userData, isLoading, refetch } = useUserData(userId);
@@ -36,6 +37,17 @@ export const useResume = (userId: string) => {
     if (success) await refetch();
   };
 
+  const handleAddToNonKeywords = async (keyword: string) => {
+    console.log('[useResume] Adding to non-keywords:', keyword);
+    const success = await addToNonKeywords(
+      userId,
+      keyword,
+      userData?.keywords || [],
+      userData?.non_keywords || []
+    );
+    if (success) await refetch();
+  };
+
   return {
     resumeText: userData?.resume_text || "",
     keywords: userData?.keywords || [],
@@ -57,5 +69,6 @@ export const useResume = (userId: string) => {
       }
     },
     handleUpdateKeywords,
+    handleAddToNonKeywords,
   };
 };
