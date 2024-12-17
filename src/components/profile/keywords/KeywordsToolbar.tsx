@@ -23,7 +23,7 @@ export const KeywordsToolbar = ({
   const hasKeywords = keywordsCount > 0;
 
   return (
-    <div className="grid grid-cols-2 gap-4 w-full">
+    <div className="grid grid-cols-2 gap-2 w-full">
       <Button
         variant="outline"
         onClick={onCopyKeywords}
