@@ -18,7 +18,11 @@ export const ResumeContent = ({
   isSaving,
 }: ResumeContentProps) => {
   if (!resumeText && !isEditing) {
-    return <EmptyResumeState />;
+    return (
+      <div className="h-[300px] border border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-col items-center justify-center space-y-4">
+        <EmptyResumeState />
+      </div>
+    );
   }
 
   if (isEditing) {
