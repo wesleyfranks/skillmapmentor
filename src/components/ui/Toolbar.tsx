@@ -8,6 +8,7 @@ export interface ToolbarAction {
   variant?: "default" | "destructive" | "outline";
   isProcessing?: boolean;
   disabled?: boolean;
+  stretch?: boolean;
 }
 
 interface ToolbarProps {
@@ -26,7 +27,7 @@ export const Toolbar = ({ actions }: ToolbarProps) => {
             onClick={action.onClick}
             disabled={action.disabled || action.isProcessing}
             className={`w-full flex items-center justify-center gap-2 h-11 ${
-              index === actions.length - 1 ? "col-span-2" : ""
+              action.stretch ? "col-span-2" : ""
             } ${
               action.variant === "destructive"
                 ? "bg-red-500 hover:bg-red-600 text-white border-0"
