@@ -28,6 +28,7 @@ export const KeywordAnalysis = ({
 }: KeywordAnalysisProps) => {
   const [editingKeyword, setEditingKeyword] = useState<{ index: number; value: string } | null>(null);
   const [progress, setProgress] = useState(0);
+  const [isCopying, setIsCopying] = useState(false);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -95,10 +96,13 @@ export const KeywordAnalysis = ({
 
   const handleCopyKeywords = async () => {
     try {
+      setIsCopying(true);
       await navigator.clipboard.writeText(keywords.join(', '));
       toast.success('Keywords copied to clipboard');
     } catch (error) {
       toast.error('Failed to copy keywords');
+    } finally {
+      setTimeout(() => setIsCopying(false), 200);
     }
   };
 
@@ -108,7 +112,8 @@ export const KeywordAnalysis = ({
       icon: Copy,
       onClick: handleCopyKeywords,
       disabled: !keywords.length || isAnalyzing,
-      variant: "outline"
+      variant: "outline",
+      className: `transition-transform duration-200 ${isCopying ? 'scale-95 opacity-80' : ''}`
     },
     {
       label: "Remove Duplicates",
