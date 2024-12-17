@@ -19,7 +19,7 @@ export const ResumeContent = ({
 }: ResumeContentProps) => {
   if (!resumeText && !isEditing) {
     return (
-      <div className="h-[300px] border border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-col items-center justify-center space-y-4">
+      <div className="h-[300px] border border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-col items-center justify-center space-y-4 mt-6">
         <EmptyResumeState />
       </div>
     );
