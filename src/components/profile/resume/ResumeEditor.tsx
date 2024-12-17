@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { ResumeContent } from "./resume/ResumeContent";
-import { ResumeToolbar } from "./ResumeToolbar";
-import { usePdfHandler } from "@/hooks/usePdfHandler";
+import { useState } from 'react';
+import { ResumeContent } from './ResumeContent';
+import { ResumeToolbar } from './ResumeToolbar';
+import { usePdfHandler } from '@/hooks/usePdfHandler';
 
 interface ResumeEditorProps {
   resumeText: string;

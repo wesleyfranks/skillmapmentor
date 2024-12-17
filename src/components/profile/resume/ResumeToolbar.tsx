@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { Pencil, Upload, FilePlus, Trash2 } from "lucide-react";
-import { DeleteResumeDialog } from "./resume/DeleteResumeDialog";
+import { Button } from '@/components/ui/button';
+import { Pencil, Upload, FilePlus, Trash2 } from 'lucide-react';
+import { DeleteResumeDialog } from './DeleteResumeDialog';
 
 interface ResumeToolbarProps {
   resumeText: string;
@@ -34,7 +34,7 @@ export const ResumeToolbar = ({
         {resumeText ? (
           <>
             <Pencil className="h-4 w-4" />
-            <span>{isEditing ? "Cancel" : "Edit"}</span>
+            <span>{isEditing ? 'Cancel' : 'Edit'}</span>
           </>
         ) : (
           <>
@@ -43,7 +43,7 @@ export const ResumeToolbar = ({
           </>
         )}
       </Button>
-      
+
       {!isEditing && (
         <Button
           variant="outline"
@@ -55,15 +55,11 @@ export const ResumeToolbar = ({
           <span>Delete</span>
         </Button>
       )}
-      
+
       {isEditing && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="invisible w-full"
-        />
+        <Button variant="outline" size="sm" className="invisible w-full" />
       )}
-      
+
       <Button
         variant="default"
         size="sm"
