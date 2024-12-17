@@ -1,7 +1,7 @@
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ResumeEditor } from "./ResumeEditor";
 import { ResumePreview } from "./ResumePreview";
-import { FileX } from "lucide-react";
+import { File } from "lucide-react";
 
 interface ResumeContentProps {
   isEditing: boolean;
@@ -21,8 +21,8 @@ export const ResumeContent = ({
   if (!resumeText && !isEditing) {
     return (
       <EmptyState
-        icon={FileX}
-        message="No Resume Available"
+        icon={File}
+        message="No resume uploaded yet. Click 'Upload PDF' or 'Edit' to add your resume."
       />
     );
   }

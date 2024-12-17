@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { KeywordsList } from "./KeywordsList";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Toolbar, type ToolbarAction } from "@/components/ui/Toolbar";
-import { Copy, Filter, Trash2, RotateCw, FileX } from "lucide-react";
+import { Search, Copy, Filter, Trash2, RotateCw } from "lucide-react";
 
 interface KeywordAnalysisProps {
   resumeText: string;
@@ -176,13 +176,13 @@ export const KeywordAnalysis = ({
       </div>
       {!resumeText ? (
         <EmptyState
-          icon={FileX}
-          message="No Resume Available"
+          icon={Search}
+          message="No resume available for keyword analysis"
         />
       ) : keywords.length === 0 && !isAnalyzing ? (
         <EmptyState
-          icon={FileX}
-          message="No Keywords Found"
+          icon={Search}
+          message="No keywords found. Click 'Analyze' to extract keywords from your resume."
         />
       ) : (
         content
