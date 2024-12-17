@@ -177,12 +177,12 @@ export const KeywordAnalysis = ({
       {!resumeText ? (
         <EmptyState
           icon={Search}
-          message="No resume available for keyword analysis"
+          message="Add content to analyze keywords"
         />
       ) : keywords.length === 0 && !isAnalyzing ? (
         <EmptyState
           icon={Search}
-          message="No keywords found. Click 'Analyze' to extract keywords from your resume."
+          message="No keywords found. Click 'Analyze' to start extracting keywords."
         />
       ) : (
         content
