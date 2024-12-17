@@ -87,17 +87,23 @@ export const KeywordsList = ({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => onEdit(index, keyword)}>
+                  <DropdownMenuItem 
+                    onClick={() => onEdit(index, keyword)}
+                    className="py-0.5"
+                  >
                     <Pencil className="mr-2 h-4 w-4" />
                     <span>Edit</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onAddToNonKeywords?.(keyword)}>
+                  <DropdownMenuItem 
+                    onClick={() => onAddToNonKeywords?.(keyword)}
+                    className="py-0.5"
+                  >
                     <Ban className="mr-2 h-4 w-4" />
                     <span>Non-Keyword</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => handleDelete(index)}
-                    className="text-destructive"
+                    className="text-destructive py-0.5"
                   >
                     <X className="mr-2 h-4 w-4" />
                     <span>Delete</span>
