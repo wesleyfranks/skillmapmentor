@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { KeywordToolbar } from "./KeywordToolbar";
-import { KeywordContent } from "./KeywordContent";
+import { KeywordToolbar } from "./components/KeywordToolbar";
+import { KeywordContent } from "./components/KeywordContent";
+import { useKeywordActions } from "./hooks/useKeywordActions";
 
 interface KeywordAnalysisProps {
   resumeText: string;
@@ -24,7 +24,13 @@ export const KeywordAnalysis = ({
 }: KeywordAnalysisProps) => {
   const [editingKeyword, setEditingKeyword] = useState<{ index: number; value: string } | null>(null);
   const [progress, setProgress] = useState(0);
-  const [isCopying, setIsCopying] = useState(false);
+  
+  const {
+    isCopying,
+    handleCopyKeywords,
+    handleEditKeyword,
+    handleDeleteKeyword
+  } = useKeywordActions(keywords, onUpdateKeywords, onDeleteKeywords);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -48,7 +54,7 @@ export const KeywordAnalysis = ({
     };
   }, [isAnalyzing]);
 
-  const handleEditKeyword = (index: number, currentValue: string) => {
+  const handleEditKeywordStart = (index: number, currentValue: string) => {
     setEditingKeyword({ index, value: currentValue });
   };
 
@@ -58,25 +64,6 @@ export const KeywordAnalysis = ({
       newKeywords[editingKeyword.index] = editingKeyword.value.trim();
       onUpdateKeywords(newKeywords);
       setEditingKeyword(null);
-    }
-  };
-
-  const handleDeleteKeyword = (indexToDelete: number) => {
-    if (onUpdateKeywords) {
-      const newKeywords = keywords.filter((_, index) => index !== indexToDelete);
-      onUpdateKeywords(newKeywords);
-    }
-  };
-
-  const handleCopyKeywords = async () => {
-    try {
-      setIsCopying(true);
-      await navigator.clipboard.writeText(keywords.join(', '));
-      toast.success('Keywords copied to clipboard');
-      setTimeout(() => setIsCopying(false), 1000);
-    } catch (error) {
-      toast.error('Failed to copy keywords');
-      setIsCopying(false);
     }
   };
 
@@ -98,7 +85,7 @@ export const KeywordAnalysis = ({
         keywords={keywords}
         progress={progress}
         editingKeyword={editingKeyword}
-        onEditKeyword={handleEditKeyword}
+        onEditKeyword={handleEditKeywordStart}
         onSaveKeyword={handleSaveKeyword}
         onCancelEdit={() => setEditingKeyword(null)}
         onDeleteKeyword={handleDeleteKeyword}
