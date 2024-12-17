@@ -154,7 +154,7 @@ export const KeywordAnalysis = ({
         )}
       </div>
       {!resumeText ? (
-        <div className="h-[300px] border border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-col items-center justify-center space-y-4 mt-6">
+        <div className="h-[300px] border border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-col items-center justify-center space-y-4 mt-6 mt-4">
           <FileX className="w-12 h-12 text-gray-400" />
           <p className="text-lg font-semibold text-gray-500 uppercase tracking-wide">
             No Keywords Available
