@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { KeywordsList } from "./KeywordsList";
 import { KeywordsToolbar } from "./KeywordsToolbar";
 import { FileX, Loader2 } from "lucide-react";
+import { EmptyResumeState } from "./resume/EmptyResumeState";
 
 interface KeywordAnalysisProps {
   resumeText: string;
@@ -154,10 +155,7 @@ export const KeywordAnalysis = ({
       </div>
       {!resumeText ? (
         <div className="h-[300px] border border-dashed border-gray-300 rounded-lg bg-blue-50/50 flex flex-col items-center justify-center space-y-4 mt-4">
-          <FileX className="w-12 h-12 text-gray-400" />
-          <p className="text-lg font-semibold text-gray-500 uppercase tracking-wide">
-            No Keywords Available
-          </p>
+          <EmptyResumeState />
         </div>
       ) : (
         content
