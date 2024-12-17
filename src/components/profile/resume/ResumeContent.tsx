@@ -22,7 +22,7 @@ export const ResumeContent = ({
     return (
       <EmptyState
         icon={File}
-        message="No resume uploaded yet. Click 'Upload PDF' or 'Edit' to add your resume."
+        message="NO RESUME AVAILABLE"
       />
     );
   }

@@ -182,7 +182,7 @@ export const KeywordAnalysis = ({
       ) : keywords.length === 0 && !isAnalyzing ? (
         <EmptyState
           icon={Search}
-          message="No keywords found. Click 'Analyze' to start extracting keywords."
+          message="NO KEYWORDS AVAILABLE"
         />
       ) : (
         content
