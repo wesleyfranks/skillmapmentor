@@ -16,7 +16,7 @@ interface ToolbarProps {
 
 export const Toolbar = ({ actions }: ToolbarProps) => {
   return (
-    <div className="grid grid-cols-2 gap-2 w-full">
+    <div className="grid grid-cols-2 gap-2 w-full h-[52px]">
       {actions.map((action, index) => {
         const Icon = action.icon;
         return (
@@ -34,7 +34,7 @@ export const Toolbar = ({ actions }: ToolbarProps) => {
             }`}
           >
             <Icon className={`h-4 w-4 ${action.isProcessing ? "animate-spin" : ""}`} />
-            <span>{action.isProcessing ? "Processing..." : action.label}</span>
+            <span>{action.label}</span>
           </Button>
         );
       })}
