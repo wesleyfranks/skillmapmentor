@@ -51,7 +51,7 @@ const Profile = () => {
           
           {!isLoading && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="order-1 lg:order-none">
+              <div className="order-2 lg:order-1">
                 <h2 className="text-2xl font-bold text-center mb-6">Keywords</h2>
                 <div className="h-full">
                   <KeywordAnalysis
@@ -65,7 +65,7 @@ const Profile = () => {
                 </div>
               </div>
 
-              <div>
+              <div className="order-1 lg:order-2">
                 <h2 className="text-2xl font-bold text-center mb-6">Resume</h2>
                 <div className="h-full">
                   <ResumeEditor
@@ -73,7 +73,7 @@ const Profile = () => {
                     isEditing={isEditing}
                     isSaving={isSaving}
                     onEdit={() => setIsEditing(!isEditing)}
-                    onSave={() => handleSaveResume(resumeText)}
+                    onSave={handleSaveResume}
                     onDelete={handleDeleteResume}
                     onChange={handleResumeTextChange}
                     userId={user.id}
