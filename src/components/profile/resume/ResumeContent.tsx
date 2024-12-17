@@ -1,5 +1,5 @@
 import { EmptyResumeState } from "./EmptyResumeState";
-import { ResumeTextEditor } from "./ResumeTextEditor";
+import { ResumeEditor } from "./ResumeEditor";
 import { ResumePreview } from "./ResumePreview";
 
 interface ResumeContentProps {
@@ -27,7 +27,7 @@ export const ResumeContent = ({
 
   if (isEditing) {
     return (
-      <ResumeTextEditor
+      <ResumeEditor
         resumeText={resumeText}
         onChange={onChange}
         onSave={onSave}

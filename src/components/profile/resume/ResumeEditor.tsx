@@ -1,83 +1,77 @@
-import { useState } from 'react';
-import { ResumeContent } from './ResumeContent';
-import { ResumeToolbar } from './ResumeToolbar';
-import { usePdfHandler } from '@/hooks/usePdfHandler';
+import { Button } from "@/components/ui/button";
+import { useEffect, useRef } from "react";
 
 interface ResumeEditorProps {
   resumeText: string;
-  isEditing: boolean;
-  isSaving: boolean;
-  onEdit: () => void;
-  onSave: (text: string) => void;
-  onDelete: () => void;
   onChange: (text: string) => void;
-  userId: string;
+  onSave: () => void;
+  isSaving: boolean;
 }
 
 export const ResumeEditor = ({
   resumeText,
-  isEditing,
-  isSaving,
-  onEdit,
-  onSave,
-  onDelete,
   onChange,
-  userId,
+  onSave,
+  isSaving,
 }: ResumeEditorProps) => {
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const { isUploading, handleFileUpload } = usePdfHandler(userId, onChange);
-  const [originalText, setOriginalText] = useState(resumeText);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleEditClick = () => {
-    if (isEditing) {
-      onChange(originalText);
-    } else {
-      setOriginalText(resumeText);
+  useEffect(() => {
+    if (textareaRef.current && resumeText) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.max(textareaRef.current.scrollHeight, 300)}px`;
     }
-    onEdit();
-  };
+  }, [resumeText]);
 
-  const handleUploadClick = () => {
-    document.getElementById('pdf-upload')?.click();
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData('text/plain');
+    const startPos = e.currentTarget.selectionStart;
+    const endPos = e.currentTarget.selectionEnd;
+    const currentValue = e.currentTarget.value;
+    const newValue = 
+      currentValue.substring(0, startPos) + 
+      text +
+      currentValue.substring(endPos);
+    onChange(newValue);
+    setTimeout(() => {
+      if (textareaRef.current) {
+        const newPosition = startPos + text.length;
+        textareaRef.current.selectionStart = newPosition;
+        textareaRef.current.selectionEnd = newPosition;
+      }
+    }, 0);
   };
 
   return (
-    <div className="space-y-6">
-      <div className="h-[52px]">
-        <ResumeToolbar
-          resumeText={resumeText}
-          isEditing={isEditing}
-          isUploading={isUploading}
-          onEdit={handleEditClick}
-          onUpload={handleUploadClick}
-          showDeleteDialog={showDeleteDialog}
-          setShowDeleteDialog={setShowDeleteDialog}
-          onDelete={onDelete}
+    <>
+      <div className="bg-muted/50 rounded-lg p-4 min-h-[100px] max-h-[500px] overflow-y-auto mt-6">
+        <textarea
+          ref={textareaRef}
+          placeholder="Paste your resume text here..."
+          value={resumeText}
+          onChange={(e) => onChange(e.target.value)}
+          onPaste={handlePaste}
+          className="w-full font-mono whitespace-pre rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[300px] p-4"
+          style={{ 
+            resize: "vertical",
+            fontFamily: "Menlo, monospace",
+            lineHeight: "1.5",
+            whiteSpace: "pre-wrap",
+            wordWrap: "break-word",
+          }}
         />
       </div>
-
-      <input
-        type="file"
-        id="pdf-upload"
-        accept=".pdf"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) {
-            handleFileUpload(file);
-          }
-        }}
-      />
-
-      <div className="min-h-[300px] max-h-[500px] overflow-y-auto">
-        <ResumeContent
-          isEditing={isEditing}
-          resumeText={resumeText}
-          onChange={onChange}
-          onSave={() => onSave(resumeText)}
-          isSaving={isSaving}
-        />
-      </div>
-    </div>
+      <Button onClick={onSave} disabled={isSaving} className="mt-4">
+        {isSaving ? (
+          <div className="flex items-center gap-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+            Saving...
+          </div>
+        ) : (
+          "Save Resume"
+        )}
+      </Button>
+    </>
   );
 };

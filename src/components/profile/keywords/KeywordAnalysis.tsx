@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { KeywordsList } from "./KeywordsList";
 import { KeywordsToolbar } from "./KeywordsToolbar";
 import { FileX, Loader2 } from "lucide-react";
-import { EmptyResumeState } from "./resume/EmptyResumeState";
+import { EmptyResumeState } from "@/components/profile/resume/EmptyResumeState";
 
 interface KeywordAnalysisProps {
   resumeText: string;
