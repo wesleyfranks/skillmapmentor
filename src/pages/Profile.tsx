@@ -2,8 +2,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Navigate } from "react-router-dom";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
-import { ResumeEditor } from "@/components/profile/ResumeEditor";
-import { KeywordAnalysis } from "@/components/profile/KeywordAnalysis";
+import { ResumeEditor } from "@/components/profile/resume/ResumeEditor";
+import { KeywordAnalysis } from "@/components/profile/keywords/KeywordAnalysis";
 import { useResume } from "@/hooks/useResume";
 
 const Profile = () => {
@@ -51,7 +51,7 @@ const Profile = () => {
           
           {!isLoading && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="order-2 lg:order-1">
+              <div className="order-1 lg:order-1">
                 <h2 className="text-2xl font-bold text-center mb-6">Keywords</h2>
                 <div className="h-full">
                   <KeywordAnalysis
@@ -65,7 +65,7 @@ const Profile = () => {
                 </div>
               </div>
 
-              <div className="order-1 lg:order-2">
+              <div className="order-2 lg:order-2">
                 <h2 className="text-2xl font-bold text-center mb-6">Resume</h2>
                 <div className="h-full">
                   <ResumeEditor
