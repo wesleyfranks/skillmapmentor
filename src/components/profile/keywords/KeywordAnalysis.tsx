@@ -177,7 +177,7 @@ export const KeywordAnalysis = ({
       {!resumeText ? (
         <EmptyState
           icon={Search}
-          message="Add content to analyze keywords"
+          message="NO RESUME AVAILABLE"
         />
       ) : keywords.length === 0 && !isAnalyzing ? (
         <EmptyState
