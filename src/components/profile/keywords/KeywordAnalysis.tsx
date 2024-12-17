@@ -3,9 +3,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { KeywordsList } from "./KeywordsList";
-import { KeywordsToolbar } from "./KeywordsToolbar";
-import { FileX } from "lucide-react";
-import { EmptyResumeState } from "@/components/profile/resume/EmptyResumeState";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Toolbar, type ToolbarAction } from "@/components/ui/Toolbar";
+import { Copy, Filter, Trash2, RotateCw, FileX } from "lucide-react";
 
 interface KeywordAnalysisProps {
   resumeText: string;
@@ -102,6 +102,37 @@ export const KeywordAnalysis = ({
     }
   };
 
+  const toolbarActions: ToolbarAction[] = [
+    {
+      label: "Copy All",
+      icon: Copy,
+      onClick: handleCopyKeywords,
+      disabled: !keywords.length || isAnalyzing,
+      variant: "outline"
+    },
+    {
+      label: "Remove Duplicates",
+      icon: Filter,
+      onClick: handleRemoveDuplicates,
+      disabled: !keywords.length || isAnalyzing,
+      variant: "outline"
+    },
+    {
+      label: "Clear All",
+      icon: Trash2,
+      onClick: onDeleteKeywords!,
+      disabled: !keywords.length || isAnalyzing,
+      variant: "destructive"
+    },
+    {
+      label: isAnalyzing ? "Analyzing..." : "Analyze",
+      icon: RotateCw,
+      onClick: onReanalyze,
+      isProcessing: isAnalyzing,
+      variant: "default"
+    }
+  ];
+
   const content = (
     <div className="bg-muted/50 rounded-lg p-4 min-h-[100px] max-h-[500px] overflow-y-auto mt-6">
       {isAnalyzing ? (
@@ -141,27 +172,18 @@ export const KeywordAnalysis = ({
   return (
     <div className="space-y-4">
       <div className="h-[52px]">
-        <KeywordsToolbar
-          keywordsCount={keywords.length}
-          isAnalyzing={isAnalyzing}
-          onReanalyze={onReanalyze}
-          onRemoveDuplicates={handleRemoveDuplicates}
-          onCopyKeywords={handleCopyKeywords}
-          onDeleteAll={onDeleteKeywords}
-          showAnalyzeButton={true}
-        />
+        <Toolbar actions={toolbarActions} />
       </div>
       {!resumeText ? (
-        <div className="h-[300px] border border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-col items-center justify-center space-y-4 mt-6">
-          <EmptyResumeState />
-        </div>
+        <EmptyState
+          icon={FileX}
+          message="No Resume Available"
+        />
       ) : keywords.length === 0 && !isAnalyzing ? (
-        <div className="h-[300px] border border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-col items-center justify-center space-y-4 mt-6">
-          <FileX className="w-12 h-12 text-gray-400" />
-          <p className="text-lg font-semibold text-gray-500 uppercase tracking-wide">
-            No Keywords Found
-          </p>
-        </div>
+        <EmptyState
+          icon={FileX}
+          message="No Keywords Found"
+        />
       ) : (
         content
       )}

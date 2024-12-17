@@ -1,6 +1,7 @@
-import { EmptyResumeState } from "./EmptyResumeState";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ResumeEditor } from "./ResumeEditor";
 import { ResumePreview } from "./ResumePreview";
+import { FileX } from "lucide-react";
 
 interface ResumeContentProps {
   isEditing: boolean;
@@ -19,9 +20,10 @@ export const ResumeContent = ({
 }: ResumeContentProps) => {
   if (!resumeText && !isEditing) {
     return (
-      <div className="h-[300px] border border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-col items-center justify-center space-y-4 mt-6">
-        <EmptyResumeState />
-      </div>
+      <EmptyState
+        icon={FileX}
+        message="No Resume Available"
+      />
     );
   }
 
