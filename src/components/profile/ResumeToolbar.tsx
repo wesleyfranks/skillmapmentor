@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Pencil, Upload, FilePlus, Trash2 } from "lucide-react";
-import { DeleteResumeDialog } from "./DeleteResumeDialog";
+import { DeleteResumeDialog } from "./resume/DeleteResumeDialog";
 
 interface ResumeToolbarProps {
   resumeText: string;
