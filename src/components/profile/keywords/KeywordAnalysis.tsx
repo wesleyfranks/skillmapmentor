@@ -175,15 +175,9 @@ export const KeywordAnalysis = ({
         <Toolbar actions={toolbarActions} />
       </div>
       {!resumeText ? (
-        <EmptyState
-          icon={Search}
-          message="NO RESUME AVAILABLE"
-        />
+        <EmptyState icon={Search} message="NO KEYWORDS AVAILABLE" />
       ) : keywords.length === 0 && !isAnalyzing ? (
-        <EmptyState
-          icon={Search}
-          message="NO KEYWORDS AVAILABLE"
-        />
+        <EmptyState icon={Search} message="NO KEYWORDS AVAILABLE" />
       ) : (
         content
       )}
