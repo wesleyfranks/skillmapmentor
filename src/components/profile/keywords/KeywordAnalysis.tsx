@@ -171,7 +171,7 @@ export const KeywordAnalysis = ({
 
   return (
     <div className="space-y-4">
-      <div className="h-[52px]">
+      <div className="h-[110px]">
         <Toolbar actions={toolbarActions} />
       </div>
       {!resumeText ? (
