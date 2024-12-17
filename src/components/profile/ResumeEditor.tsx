@@ -42,17 +42,19 @@ export const ResumeEditor = ({
   };
 
   return (
-    <div className="h-full">
-      <ResumeToolbar
-        resumeText={resumeText}
-        isEditing={isEditing}
-        isUploading={isUploading}
-        onEdit={handleEditClick}
-        onUpload={handleUploadClick}
-        showDeleteDialog={showDeleteDialog}
-        setShowDeleteDialog={setShowDeleteDialog}
-        onDelete={onDelete}
-      />
+    <div className="space-y-6">
+      <div className="h-[52px]"> {/* Fixed height container for toolbar */}
+        <ResumeToolbar
+          resumeText={resumeText}
+          isEditing={isEditing}
+          isUploading={isUploading}
+          onEdit={handleEditClick}
+          onUpload={handleUploadClick}
+          showDeleteDialog={showDeleteDialog}
+          setShowDeleteDialog={setShowDeleteDialog}
+          onDelete={onDelete}
+        />
+      </div>
 
       <input
         type="file"
@@ -67,7 +69,7 @@ export const ResumeEditor = ({
         }}
       />
 
-      <div className="h-[calc(100vh-20rem)] overflow-y-auto">
+      <div className="min-h-[300px] max-h-[500px] overflow-y-auto">
         <ResumeContent
           isEditing={isEditing}
           resumeText={resumeText}
