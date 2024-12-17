@@ -81,7 +81,7 @@ export const KeywordsList = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 w-6 p-0 ml-1"
+                    className="h-6 w-6 px-0.25"
                   >
                     <MoreVertical className="h-3 w-3" />
                   </Button>
