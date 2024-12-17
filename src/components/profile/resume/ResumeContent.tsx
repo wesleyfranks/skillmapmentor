@@ -47,7 +47,6 @@ export const ResumeContent = ({
       onClick: () => setShowDeleteDialog(true),
       variant: "destructive" as const,
       disabled: !resumeText || isEditing,
-      stretch: true,
     },
     {
       label: 'Upload',
@@ -56,6 +55,7 @@ export const ResumeContent = ({
       isProcessing: isUploading,
       disabled: isEditing,
       variant: "default" as const,
+      stretch: true,
     }
   ];
 
