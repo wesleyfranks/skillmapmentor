@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { KeywordsList } from "./KeywordsList";
 import { KeywordsToolbar } from "./KeywordsToolbar";
-import { FileX, Loader2 } from "lucide-react";
+import { FileX } from "lucide-react";
 import { EmptyResumeState } from "@/components/profile/resume/EmptyResumeState";
 
 interface KeywordAnalysisProps {
@@ -107,16 +107,14 @@ export const KeywordAnalysis = ({
       {isAnalyzing ? (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="text-sm text-muted-foreground">Analyzing resume...</span>
+            <div className="text-sm text-muted-foreground">
+              {progress < 30 && "Initializing analysis..."}
+              {progress >= 30 && progress < 70 && "Processing resume content..."}
+              {progress >= 70 && progress < 90 && "Extracting keywords..."}
+              {progress >= 90 && "Finalizing results..."}
+            </div>
           </div>
           <Progress value={progress} className="w-full" />
-          <div className="text-sm text-muted-foreground">
-            {progress < 30 && "Initializing analysis..."}
-            {progress >= 30 && progress < 70 && "Processing resume content..."}
-            {progress >= 70 && progress < 90 && "Extracting keywords..."}
-            {progress >= 90 && "Finalizing results..."}
-          </div>
           <div className="flex flex-wrap gap-2">
             {[1, 2, 3, 4, 5].map((i) => (
               <Skeleton key={i} className="h-6 w-20" />

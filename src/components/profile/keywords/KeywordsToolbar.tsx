@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Copy, Filter, Trash2, RotateCw } from "lucide-react";
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 interface KeywordsToolbarProps {
   keywordsCount: number;
@@ -24,63 +23,46 @@ export const KeywordsToolbar = ({
   const hasKeywords = keywordsCount > 0;
 
   return (
-    <div className="w-full">
-      <Table>
-        <TableBody>
-          <TableRow>
-            <TableCell>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={onCopyKeywords}
-                disabled={!hasKeywords || isAnalyzing}
-                className="w-full flex items-center justify-center gap-2"
-              >
-                <Copy className="h-4 w-4" />
-                <span>Copy All</span>
-              </Button>
-            </TableCell>
-            <TableCell>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={onRemoveDuplicates}
-                disabled={!hasKeywords || isAnalyzing}
-                className="w-full flex items-center justify-center gap-2"
-              >
-                <Filter className="h-4 w-4" />
-                <span>Remove Duplicates</span>
-              </Button>
-            </TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={onDeleteAll}
-                disabled={!hasKeywords || isAnalyzing}
-                className="text-red-500 hover:text-white hover:bg-red-500 w-full flex items-center justify-center gap-2"
-              >
-                <Trash2 className="h-4 w-4" />
-                <span>Clear All</span>
-              </Button>
-            </TableCell>
-            <TableCell>
-              <Button
-                variant="default"
-                size="lg"
-                onClick={onReanalyze}
-                disabled={isAnalyzing}
-                className="bg-primary hover:bg-primary/90 w-full flex items-center justify-center gap-2"
-              >
-                <RotateCw className={`h-4 w-4 ${isAnalyzing ? 'animate-spin' : ''}`} />
-                <span>{isAnalyzing ? "Analyzing..." : "Analyze"}</span>
-              </Button>
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
+    <div className="grid grid-cols-2 gap-4 w-full">
+      <Button
+        variant="outline"
+        onClick={onCopyKeywords}
+        disabled={!hasKeywords || isAnalyzing}
+        className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-700"
+      >
+        <Copy className="h-4 w-4" />
+        <span>Copy All</span>
+      </Button>
+      
+      <Button
+        variant="outline"
+        onClick={onRemoveDuplicates}
+        disabled={!hasKeywords || isAnalyzing}
+        className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-700"
+      >
+        <Filter className="h-4 w-4" />
+        <span>Remove Duplicates</span>
+      </Button>
+
+      <Button
+        variant="outline"
+        onClick={onDeleteAll}
+        disabled={!hasKeywords || isAnalyzing}
+        className="w-full flex items-center justify-center gap-2 text-red-500 hover:text-white hover:bg-red-500 border-red-200 hover:border-red-500"
+      >
+        <Trash2 className="h-4 w-4" />
+        <span>Clear All</span>
+      </Button>
+
+      <Button
+        variant="default"
+        onClick={onReanalyze}
+        disabled={isAnalyzing}
+        className="w-full flex items-center justify-center gap-2 bg-[#6D28D9] hover:bg-[#5B21B6]"
+      >
+        <RotateCw className={`h-4 w-4 ${isAnalyzing ? 'animate-spin' : ''}`} />
+        <span>{isAnalyzing ? "Analyzing..." : "Analyze"}</span>
+      </Button>
     </div>
   );
 };
