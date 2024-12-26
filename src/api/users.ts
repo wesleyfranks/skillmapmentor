@@ -1,79 +1,44 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../integrations/supabase/client"; // Corrected import path
 import { toast } from "sonner";
 
 export interface UserData {
   resume_text: string | null;
+  file_path: string | null;
   keywords: string[];
   non_keywords: string[];
 }
 
-export const getUserData = async (userId: string): Promise<UserData | null> => {
+export const getUserData = async (userId: string): Promise<UserData[]> => {
   try {
-    console.log('[API] Fetching user data for:', userId);
-    
-    // First check if we have a valid session
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError) {
-      console.error('[API] Session error:', sessionError);
-      toast.error("Please log in to continue");
-      throw sessionError;
+    console.log('[API] Fetching resumes for user:', userId);
+
+    const { data: resumes, error } = await supabase
+      .from('resumes')
+      .select(
+        'id, user_id, file_path, resume_text, keywords, non_keywords, created_at, updated_at'
+      )
+      .eq('user_id', userId) // Filtering by user_id
+      .order('updated_at', { ascending: false })
+      .limit(5);
+
+    if (error) {
+      toast.error('Failed to fetch resumes.');
+      throw error;
     }
 
-    if (!sessionData.session) {
-      console.log('[API] No active session');
-      toast.error("Please log in to continue");
-      return null;
-    }
-
-    console.log('[API] Session found:', {
-      userId: sessionData.session.user.id,
-      requestedUserId: userId,
-      accessToken: sessionData.session.access_token.slice(0, 10) + '...'
-    });
-
-    // Get the user data with proper select parameter
-    const { data: userData, error: fetchError } = await supabase
-      .from('users')
-      .select('resume_text, keywords, non_keywords')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (fetchError) {
-      console.error('[API] Error fetching user:', fetchError);
-      if (fetchError.code === '42501') {
-        toast.error("You don't have permission to access this data");
-      } else {
-        toast.error("Failed to load user data");
-      }
-      throw fetchError;
-    }
-
-    console.log('[API] User data response:', userData);
-
-    // If no user data found, return default empty state
-    if (!userData) {
-      console.log('[API] No user data found for authenticated user');
-      return {
-        resume_text: null,
-        keywords: [],
-        non_keywords: []
-      };
-    }
-
-    return userData as UserData;
-  } catch (error: any) {
-    console.error('[API] Error:', error);
-    throw error;
+    return resumes || [];
+  } catch (err) {
+    console.error('[API] Error fetching resumes:', err);
+    return [];
   }
 };
 
 export const updateUserResume = async (userId: string, resumeText: string | null) => {
   try {
     const { error } = await supabase
-      .from('users')
-      .update({ resume_text: resumeText })
-      .eq('id', userId);
+      .from('resumes')
+      .update({ file_path: resumeText, resume_text: null }) // Added resume_text
+      .eq('user_id', userId);
 
     if (error) {
       if (error.code === '42501') {
@@ -94,9 +59,9 @@ export const updateUserResume = async (userId: string, resumeText: string | null
 export const updateUserKeywords = async (userId: string, keywords: string[]) => {
   try {
     const { error } = await supabase
-      .from('users')
-      .update({ keywords })
-      .eq('id', userId);
+      .from('resumes')
+      .update({ keywords, resume_text: null }) // Added resume_text
+      .eq('user_id', userId);
 
     if (error) {
       if (error.code === '42501') {
@@ -116,9 +81,9 @@ export const updateUserKeywords = async (userId: string, keywords: string[]) => 
 export const deleteUserKeywords = async (userId: string) => {
   try {
     const { error } = await supabase
-      .from('users')
-      .update({ keywords: [] })
-      .eq('id', userId);
+      .from('resumes')
+      .update({ keywords: [], resume_text: null }) // Added resume_text
+      .eq('user_id', userId);
 
     if (error) {
       if (error.code === '42501') {
@@ -138,9 +103,9 @@ export const deleteUserKeywords = async (userId: string) => {
 export const updateUserNonKeywords = async (userId: string, nonKeywords: string[]) => {
   try {
     const { error } = await supabase
-      .from('users')
-      .update({ non_keywords: nonKeywords })
-      .eq('id', userId);
+      .from('resumes')
+      .update({ non_keywords: nonKeywords }) // Added resume_text
+      .eq('user_id', userId);
 
     if (error) {
       if (error.code === '42501') {

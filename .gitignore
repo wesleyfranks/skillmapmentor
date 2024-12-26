@@ -25,3 +25,5 @@ dist-ssr
 
 # Google conf files
 .idx/*
+
+supabase/.temp/*

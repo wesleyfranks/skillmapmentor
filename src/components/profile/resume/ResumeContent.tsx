@@ -13,7 +13,7 @@ interface ResumeContentProps {
   onSave: () => void;
   isSaving: boolean;
   onEdit: () => void;
-  onUpload: () => void;
+  onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   isUploading: boolean;
   showDeleteDialog: boolean;
   setShowDeleteDialog: (show: boolean) => void;

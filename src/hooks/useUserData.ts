@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getUserData, type UserData } from "@/api/users";
+import { getUserData, type UserData } from "../api/users";
 
 export { type UserData };
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../integrations/supabase/client"; // Corrected import path
 import { toast } from "sonner";
 
 export const useKeywords = (userId: string) => {
@@ -32,9 +32,9 @@ export const useKeywords = (userId: string) => {
       )).sort();
 
       await supabase
-        .from("users")
-        .update({ keywords: keywordList })
-        .eq("id", userId);
+        .from("resumes")
+        .update({ keywords: keywordList }) // Update keywords in resumes table
+        .eq("user_id", userId);
 
       const newKeywordsCount = data.newKeywordsCount || 0;
       if (newKeywordsCount > 0) {
@@ -58,9 +58,9 @@ export const useKeywords = (userId: string) => {
     
     try {
       const { error } = await supabase
-        .from("users")
+        .from("resumes") // Update keywords in resumes table
         .update({ keywords: newKeywords })
-        .eq("id", userId);
+        .eq("user_id", userId);
 
       if (error) throw error;
       return true;
@@ -76,9 +76,9 @@ export const useKeywords = (userId: string) => {
     
     try {
       const { error } = await supabase
-        .from("users")
+        .from("resumes") // Clear keywords in resumes table
         .update({ keywords: [] })
-        .eq("id", userId);
+        .eq("user_id", userId);
 
       if (error) throw error;
       

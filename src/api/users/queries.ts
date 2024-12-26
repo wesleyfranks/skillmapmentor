@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../../integrations/supabase/client";
 import { toast } from "sonner";
 import { UserData } from "./types";
 
@@ -6,34 +6,29 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
   try {
     console.log('[API] Fetching user data for:', userId);
     
-    const { data: userData, error: fetchError } = await supabase
-      .from('users')
-      .select('resume_text, keywords, non_keywords')
-      .eq('id', userId)
-      .single();
+    const { data: resumeData, error: fetchError } = await supabase
+      .from('resumes')
+      .select('file_path')
+      .eq('user_id', userId); // Ensure we filter by user_id
 
-    if (fetchError) {
-      console.error('[API] Error fetching user:', fetchError);
-      if (fetchError.code === '42501') {
-        toast.error("You don't have permission to access this data");
-      } else {
-        toast.error("Failed to load user data");
-      }
-      throw fetchError;
-    }
+    console.log('[API] Resume data response:', resumeData);
 
-    console.log('[API] User data response:', userData);
-
-    if (!userData) {
-      console.log('[API] No user data found, returning default values');
+    if (!resumeData || resumeData.length === 0) {
+      console.log('[API] No resume data found, returning default values');
       return {
         resume_text: null,
+        file_path: null,
         keywords: [],
-        non_keywords: []
+        non_keywords: [],
       };
     }
 
-    return userData;
+    return {
+      resume_text: null,
+      file_path: null,
+      keywords: [],
+      non_keywords: [], // Placeholder for non-keywords
+    };
   } catch (error: any) {
     console.error('[API] Error:', error);
     throw error;
