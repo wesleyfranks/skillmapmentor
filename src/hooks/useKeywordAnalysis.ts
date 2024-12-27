@@ -74,7 +74,7 @@ export const useKeywordAnalysis = (userId: string) => {
       
       // Update keywords in database
       const { error: updateError } = await supabase
-        .from("users")
+        .from("resumes")
         .update({ keywords: keywordList })
         .eq("id", userId);
 
@@ -119,7 +119,7 @@ export const useKeywordAnalysis = (userId: string) => {
       const updatedNonKeywords = [...nonKeywords, lowercaseKeyword];
       
       const { error } = await supabase
-        .from("users")
+        .from("resumes")
         .update({ 
           non_keywords: updatedNonKeywords,
           keywords: keywords.filter(k => k.toLowerCase() !== lowercaseKeyword)

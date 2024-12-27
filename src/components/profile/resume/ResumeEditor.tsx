@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useRef } from "react";
 
 interface ResumeEditorProps {
+  resumeId: string;
   resumeText: string;
   onChange: (text: string) => void;
   onSave: () => void;
@@ -9,6 +10,7 @@ interface ResumeEditorProps {
 }
 
 export const ResumeEditor = ({
+  resumeId,
   resumeText,
   onChange,
   onSave,

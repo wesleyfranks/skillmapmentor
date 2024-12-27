@@ -17,6 +17,7 @@ import {
 
 interface ResumeContentProps {
   isEditing: boolean;
+  resumeId: string;
   resumeText: string;
   onChange: (text: string) => void;
   onSave: () => void;
@@ -27,13 +28,14 @@ interface ResumeContentProps {
   showDeleteDialog: boolean;
   setShowDeleteDialog: (show: boolean) => void;
   onDelete: (resumeId: string, filePath: string) => void; // Accept two arguments for deletion
-  selectedResumeId: string | null;
   resumes: { id: string; file_path: string }[];
 }
 
 export const ResumeContent = ({
   isEditing,
   resumeText,
+  resumeId,
+  resumes,
   onChange,
   onSave,
   isSaving,
@@ -43,8 +45,6 @@ export const ResumeContent = ({
   showDeleteDialog,
   setShowDeleteDialog,
   onDelete,
-  selectedResumeId,
-  resumes,
 }: ResumeContentProps) => {
   const toolbarActions = [
     {
@@ -73,13 +73,13 @@ export const ResumeContent = ({
   ];
 
   const handleDelete = () => {
-    if (!selectedResumeId) {
+    if (!resumeId) {
       console.error('No selected resume for deletion.');
       return;
     }
 
     const selectedResume = resumes.find(
-      (resume) => resume.id === selectedResumeId
+      (resume) => resume.id === resumeId
     );
     if (!selectedResume) {
       console.error('Resume not found.');
@@ -105,6 +105,7 @@ export const ResumeContent = ({
       {isEditing ? (
         <ResumeEditor
           resumeText={resumeText}
+          resumeId={resumeId}
           onChange={onChange}
           onSave={onSave}
           isSaving={isSaving}

@@ -6,7 +6,7 @@ export const useResumeText = (userId: string) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const saveResume = async (text: string) => {
+  const saveResume = async (resumeText: string) => {
     console.log('[useResumeText] Saving resume');
     setIsSaving(true);
 
@@ -14,7 +14,7 @@ export const useResumeText = (userId: string) => {
       const { error } = await supabase
         .from('resumes') // Change to resumes table
         .update({
-          resume_text: text
+          resume_text: resumeText,
         })
         .eq('user_id', userId);
 
@@ -32,17 +32,15 @@ export const useResumeText = (userId: string) => {
     }
   };
 
-  const deleteResume = async (): Promise<boolean> => {
+  const deleteResume = async (resumeId: string): Promise<boolean> => {
     // Ensure it returns a boolean
     console.log('[useResumeText] Deleting resume');
     try {
       const { error } = await supabase
-        .from('resumes') // Change to resumes table
-        .update({
-          resume_text: null,
-          file_path: null,
-        })
-        .eq('user_id', userId);
+        .from('resumes')
+        .delete()
+        .eq('id', resumeId)
+        .eq('user_id', userId); // Safety check
 
       if (error) throw error;
 

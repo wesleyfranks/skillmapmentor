@@ -1,4 +1,4 @@
-import { useAuth } from '../contexts/AuthContext'; // Auth context for user info
+
 import { Card } from '../components/ui/card'; // Card component
 import { Navigate } from 'react-router-dom'; // For navigation
 import { ProfileHeader } from '../components/profile/ProfileHeader'; // Profile header
@@ -9,6 +9,7 @@ import { useState } from 'react'; // React state management
 import { uploadResume, insertResume } from '../api/users/mutations'; // Functions to handle file uploads and database inserts
 import { toast } from 'sonner'; // Toast notifications
 import { supabase } from '../integrations/supabase/client'; // Supabase client
+import { useAuth } from '../contexts/AuthContext'
 
 const Profile = () => {
   const { user } = useAuth(); // Authenticated user
@@ -26,7 +27,7 @@ const Profile = () => {
 
   const {
     resumes,
-    selectedResumeId,
+    resumeId,
     resumeText,
     isEditing,
     isSaving,
@@ -88,7 +89,7 @@ const Profile = () => {
         const { error } = await supabase
           .from('resumes')
           .update({ resume_text: text })
-          .eq('id', selectedResumeId);
+          .eq('id', resumeId);
         if (error) {
           throw new Error('Failed to update resume text.');
         }
@@ -130,6 +131,7 @@ const Profile = () => {
                 <h2 className="text-2xl font-bold text-center mb-6">Resume</h2>
                 <ResumeContent
                   isEditing={isEditing}
+                  resumeId={resumeId}
                   resumeText={resumeText}
                   onChange={handleResumeTextChange}
                   onSave={() => handleSaveResume(resumeText)}
@@ -139,8 +141,7 @@ const Profile = () => {
                   isUploading={isUploading}
                   showDeleteDialog={showDeleteDialog}
                   setShowDeleteDialog={setShowDeleteDialog}
-                  onDelete={() => handleDeleteResume(selectedResumeId)}
-                  selectedResumeId={selectedResumeId} // Pass this prop
+                  onDelete={() => handleDeleteResume(resumeId)}
                   resumes={resumes} // Pass this prop
                 />
               </div>

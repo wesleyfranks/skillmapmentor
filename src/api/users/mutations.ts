@@ -110,7 +110,7 @@ export const getUserResumes = async (userId: string) => {
 };
 
 // Helper function to delete a resume
-export const deleteResume = async (userId: string, resumeId: string) => {
+export const deleteResumeFile = async (userId: string, resumeId: string) => {
   try {
     // Get file path
     const { data: resume } = await supabase

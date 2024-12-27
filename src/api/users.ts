@@ -1,5 +1,5 @@
-import { supabase } from "../integrations/supabase/client"; // Corrected import path
-import { toast } from "sonner";
+import { supabase } from '../integrations/supabase/client'; // Corrected import path
+import { toast } from 'sonner';
 
 export interface UserData {
   fullName: string;

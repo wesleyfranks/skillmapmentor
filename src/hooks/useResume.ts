@@ -10,7 +10,7 @@ interface Resume {
 
 export const useResume = (userId: string) => {
   const [resumes, setResumes] = useState<Resume[]>([]);
-  const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
+  const [resumeId, setresumeId] = useState<string | null>(null);
   const [resumeText, setResumeText] = useState<string>('');
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -21,12 +21,12 @@ export const useResume = (userId: string) => {
     try {
       const { data, error } = await supabase
         .from('resumes')
-        .select('id, file_path, resume_text')
+        .select('*')
         .eq('user_id', userId);
       if (error) throw error;
       setResumes(data || []);
       if (data?.length > 0) {
-        setSelectedResumeId(data[0].id);
+        setresumeId(data[0].id);
         setResumeText(data[0].resume_text || '');
       }
     } catch (error) {
@@ -46,7 +46,7 @@ export const useResume = (userId: string) => {
   };
 
   const handleSaveResume = async (text: string) => {
-    if (!selectedResumeId) {
+    if (!resumeId) {
       toast.error('No resume selected to save.');
       return;
     }
@@ -56,7 +56,7 @@ export const useResume = (userId: string) => {
       const { error } = await supabase
         .from('resumes')
         .update({ resume_text: text })
-        .eq('id', selectedResumeId);
+        .eq('id', resumeId);
       if (error) throw error;
       toast.success('Resume saved successfully.');
       setIsEditing(false);
@@ -86,7 +86,7 @@ export const useResume = (userId: string) => {
 
   return {
     resumes,
-    selectedResumeId,
+    resumeId,
     resumeText,
     isEditing,
     isSaving,
