@@ -1,10 +1,19 @@
-import { EmptyState } from "@/components/ui/EmptyState";
-import { ResumeEditor } from "./ResumeEditor";
-import { ResumePreview } from "./ResumePreview";
-import { File } from "lucide-react";
-import { Toolbar } from "@/components/ui/Toolbar";
-import { Edit, Save, Upload, Trash } from "lucide-react";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ResumeEditor } from './ResumeEditor';
+import { ResumePreview } from './ResumePreview';
+import { File } from 'lucide-react';
+import { Toolbar } from '@/components/ui/Toolbar';
+import { Edit, Save, Upload, Trash } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface ResumeContentProps {
   isEditing: boolean;
@@ -17,7 +26,9 @@ interface ResumeContentProps {
   isUploading: boolean;
   showDeleteDialog: boolean;
   setShowDeleteDialog: (show: boolean) => void;
-  onDelete: () => void;
+  onDelete: (resumeId: string, filePath: string) => void; // Accept two arguments for deletion
+  selectedResumeId: string | null;
+  resumes: { id: string; file_path: string }[];
 }
 
 export const ResumeContent = ({
@@ -32,6 +43,8 @@ export const ResumeContent = ({
   showDeleteDialog,
   setShowDeleteDialog,
   onDelete,
+  selectedResumeId,
+  resumes,
 }: ResumeContentProps) => {
   const toolbarActions = [
     {
@@ -39,13 +52,13 @@ export const ResumeContent = ({
       icon: isEditing ? Save : Edit,
       onClick: isEditing ? onSave : onEdit,
       isProcessing: isSaving,
-      variant: isEditing ? ("default" as const) : ("outline" as const),
+      variant: isEditing ? ('default' as const) : ('outline' as const),
     },
     {
       label: 'Delete Resume',
       icon: Trash,
       onClick: () => setShowDeleteDialog(true),
-      variant: "destructive" as const,
+      variant: 'destructive' as const,
       disabled: !resumeText || isEditing,
     },
     {
@@ -54,19 +67,34 @@ export const ResumeContent = ({
       onClick: onUpload,
       isProcessing: isUploading,
       disabled: isEditing,
-      variant: "default" as const,
+      variant: 'default' as const,
       stretch: true,
-    }
+    },
   ];
+
+  const handleDelete = () => {
+    if (!selectedResumeId) {
+      console.error('No selected resume for deletion.');
+      return;
+    }
+
+    const selectedResume = resumes.find(
+      (resume) => resume.id === selectedResumeId
+    );
+    if (!selectedResume) {
+      console.error('Resume not found.');
+      return;
+    }
+
+    // Pass resumeId and filePath to the onDelete handler
+    onDelete(selectedResume.id, selectedResume.file_path);
+  };
 
   if (!resumeText && !isEditing) {
     return (
       <div className="space-y-6">
         <Toolbar actions={toolbarActions} />
-        <EmptyState
-          icon={File}
-          message="NO RESUME AVAILABLE"
-        />
+        <EmptyState icon={File} message="NO RESUME AVAILABLE" />
       </div>
     );
   }
@@ -89,12 +117,13 @@ export const ResumeContent = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your resume.
+              This action cannot be undone. This will permanently delete your
+              resume.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={onDelete}>Delete</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -1,151 +1,99 @@
-import { useUserData } from './useUserData';
-import { supabase } from '../integrations/supabase/client'; // Ensure correct import
-import { useResumeText } from './useResumeText';
-import { useKeywords } from './useKeywords';
-import { addToNonKeywords } from '../api/users/mutations';
 import { useState, useEffect } from 'react';
+import { supabase } from '../integrations/supabase/client'; // Adjust the import path
+import { toast } from 'sonner';
+
+interface Resume {
+  id: string;
+  file_path: string;
+  resume_text: string;
+}
 
 export const useResume = (userId: string) => {
+  const [resumes, setResumes] = useState<Resume[]>([]);
+  const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
   const [resumeText, setResumeText] = useState<string>('');
-  const [resumes, setResumes] = useState<any[]>([]); // State to hold multiple resumes
-  const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
-  const { data: userData, isLoading, refetch } = useUserData(userId);
-  const { isEditing, isSaving, setIsEditing, saveResume, deleteResume } =
-    useResumeText(userId);
-  const { isAnalyzing, analyzeResume, updateKeywords, deleteKeywords } =
-    useKeywords(userId);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchResumes = async () => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('resumes')
-        .select('*')
-        .eq('user_id', userId)
-        .order('updated_at', { ascending: false })
-        .limit(5);
-
+        .select('id, file_path, resume_text')
+        .eq('user_id', userId);
       if (error) throw error;
-
       setResumes(data || []);
-      if (data && data.length > 0) {
-        const resumeId = parseInt(data[0].id, 10); // Ensure the ID is a number
-        setSelectedResumeId(isNaN(resumeId) ? null : resumeId); // Set to null if ID is invalid
-        fetchResumeContent(data[0].file_path);
+      if (data?.length > 0) {
+        setSelectedResumeId(data[0].id);
+        setResumeText(data[0].resume_text || '');
       }
     } catch (error) {
-      console.error('[useResume] Error fetching resumes:', error);
-    }
-  };
-
-  const fetchResumeContent = async (filePath: string) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from('resumes')
-        .download(filePath);
-
-      if (error) throw error;
-
-      const text = await data.text(); // Read the text content from the file
-      setResumeText(text); // Update the resume text state
-    } catch (error) {
-      console.error('[useResume] Error fetching resume content:', error);
+      console.error('Error fetching resumes:', error);
+      toast.error('Failed to fetch resumes.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchResumes();
-  }, []);
+  }, [userId]);
 
-  const handleSelectResume = (resumeId: number, filePath: string) => {
-    setSelectedResumeId(resumeId);
-    fetchResumeContent(filePath);
+  const handleResumeTextChange = (text: string) => {
+    setResumeText(text);
   };
 
   const handleSaveResume = async (text: string) => {
-    console.log('[useResume] Saving resume with text:', text);
-    const success = (await saveResume(text)) ?? false; // Ensure it defaults to false if undefined
-    if (success) {
-      await refetch();
-      fetchResumes(); // Refresh the list of resumes
+    if (!selectedResumeId) {
+      toast.error('No resume selected to save.');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      const { error } = await supabase
+        .from('resumes')
+        .update({ resume_text: text })
+        .eq('id', selectedResumeId);
+      if (error) throw error;
+      toast.success('Resume saved successfully.');
+      setIsEditing(false);
+      fetchResumes(); // Refresh resumes
+    } catch (error) {
+      console.error('Error saving resume:', error);
+      toast.error('Failed to save resume.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const handleDeleteResume = async (resumeId: number) => {
+  const handleDeleteResume = async (resumeId: string) => {
     try {
       const { error } = await supabase
         .from('resumes')
         .delete()
         .eq('id', resumeId);
-
       if (error) throw error;
-
-      console.log('[useResume] Resume deleted successfully');
-      fetchResumes(); // Refresh the list of resumes
+      toast.success('Resume deleted successfully.');
+      fetchResumes(); // Refresh resumes
     } catch (error) {
-      console.error('[useResume] Error deleting resume:', error);
+      console.error('Error deleting resume:', error);
+      toast.error('Failed to delete resume.');
     }
-  };
-
-  const handleDeleteKeywords = async () => {
-    console.log('[useResume] Deleting keywords');
-    const success = await deleteKeywords();
-    if (success) await refetch();
-  };
-
-  const handleUpdateKeywords = async (newKeywords: string[]) => {
-    console.log('[useResume] Updating keywords');
-    const success = await updateKeywords(newKeywords);
-    if (success) await refetch();
-  };
-
-  const handleAddToNonKeywords = async (keyword: string) => {
-    try {
-      console.log('[useResume] Adding to non-keywords:', {
-        userId,
-        keyword,
-        currentKeywords: userData?.keywords || [],
-        currentNonKeywords: userData?.non_keywords || [],
-      });
-
-      const success = await addToNonKeywords(
-        userId,
-        keyword,
-        userData?.keywords || [],
-        userData?.non_keywords || []
-      );
-      console.log('[useResume] Add to non-keywords success:', success);
-
-      if (success) {
-        console.log('[useResume] Refetching data...');
-        await refetch();
-      }
-    } catch (error) {
-      console.error('[useResume] Error in handleAddToNonKeywords:', error);
-    }
-  };
-
-  const handleResumeTextChange = (text: string) => {
-    console.log('[useResume] Text changed:', { length: text.length });
-    setResumeText(text);
   };
 
   return {
     resumes,
     selectedResumeId,
     resumeText,
-    keywords: userData?.keywords || [],
-    nonKeywords: userData?.non_keywords || [],
     isEditing,
     isSaving,
-    isAnalyzing,
     isLoading,
     setIsEditing,
-    handleSelectResume,
     handleSaveResume,
     handleDeleteResume,
-    handleDeleteKeywords,
     handleResumeTextChange,
-    handleUpdateKeywords,
-    handleAddToNonKeywords,
   };
 };

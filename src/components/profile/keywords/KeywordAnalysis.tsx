@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { KeywordToolbar } from "./components/KeywordToolbar";
-import { KeywordContent } from "./components/KeywordContent";
-import { useKeywordActions } from "./hooks/useKeywordActions";
+import { useState, useEffect } from 'react';
+import { KeywordToolbar } from './components/KeywordToolbar';
+import { KeywordContent } from './components/KeywordContent';
+import { useKeywordActions } from './hooks/useKeywordActions';
 
 interface KeywordAnalysisProps {
   resumeText: string;
@@ -22,36 +22,31 @@ export const KeywordAnalysis = ({
   onUpdateKeywords,
   onAddToNonKeywords,
 }: KeywordAnalysisProps) => {
-  const [editingKeyword, setEditingKeyword] = useState<{ index: number; value: string } | null>(null);
+  const [editingKeyword, setEditingKeyword] = useState<{
+    index: number;
+    value: string;
+  } | null>(null);
   const [progress, setProgress] = useState(0);
-  
+
   const {
     isCopying,
     handleCopyKeywords,
     handleEditKeyword,
-    handleDeleteKeyword
+    handleDeleteKeyword,
   } = useKeywordActions(keywords, onUpdateKeywords, onDeleteKeywords);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
     if (isAnalyzing) {
       setProgress(0);
-      interval = setInterval(() => {
-        setProgress(prev => {
-          if (prev < 30) return prev + 2;
-          if (prev < 70) return prev + 1;
-          if (prev < 90) return prev + 0.5;
-          return prev;
-        });
+      const interval = setInterval(() => {
+        setProgress((prev) =>
+          prev < 100 ? prev + (prev < 30 ? 2 : prev < 70 ? 1 : 0.5) : prev
+        );
       }, 100);
+      return () => clearInterval(interval);
     } else {
       setProgress(100);
     }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
   }, [isAnalyzing]);
 
   const handleEditKeywordStart = (index: number, currentValue: string) => {
@@ -75,7 +70,7 @@ export const KeywordAnalysis = ({
           isAnalyzing={isAnalyzing}
           isCopying={isCopying}
           onCopy={handleCopyKeywords}
-          onDelete={onDeleteKeywords!}
+          onDelete={onDeleteKeywords || (() => {})} // Safe fallback
           onReanalyze={onReanalyze}
         />
       </div>

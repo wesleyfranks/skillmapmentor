@@ -13,8 +13,8 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          file_path: string;
-          resume_text: string;
+          file_path: string | null;
+          resume_text: string | null;
           keywords: string[] | null;
           non_keywords: string[] | null;
           created_at: string;
@@ -40,6 +40,10 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Delete: {
+          id: string;
+          user_id: string; 
+        }
         Relationships: [];
       };
       users: {

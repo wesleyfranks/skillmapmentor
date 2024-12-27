@@ -8,7 +8,7 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
     
     const { data: resumeData, error: fetchError } = await supabase
       .from('resumes')
-      .select('file_path')
+      .select('*')
       .eq('user_id', userId); // Ensure we filter by user_id
 
     console.log('[API] Resume data response:', resumeData);
@@ -16,6 +16,10 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
     if (!resumeData || resumeData.length === 0) {
       console.log('[API] No resume data found, returning default values');
       return {
+        resume_id: null,
+        user_id: userId,
+        created_at: null,
+        updated_at: null,
         resume_text: null,
         file_path: null,
         keywords: [],
@@ -24,6 +28,10 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
     }
 
     return {
+      resume_id: null,
+      user_id: userId,
+      created_at: null,
+      updated_at: null,
       resume_text: null,
       file_path: null,
       keywords: [],

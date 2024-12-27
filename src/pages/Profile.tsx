@@ -1,95 +1,69 @@
-import { useAuth } from "../contexts/AuthContext";
-import { Card } from "../components/ui/card";
-import { Navigate } from "react-router-dom";
-import { ProfileHeader } from "../components/profile/ProfileHeader";
-import { ResumeContent } from "../components/profile/resume/ResumeContent";
-import { KeywordAnalysis } from "../components/profile/keywords/KeywordAnalysis";
-import { useResume } from "../hooks/useResume";
-import { useState } from "react";
-import { uploadResume, insertResume } from "../api/users/mutations";
-import { supabase } from "../integrations/supabase/client"; // Adjust the import path as necessary
-import { toast } from "sonner";
+import { useAuth } from '../contexts/AuthContext'; // Auth context for user info
+import { Card } from '../components/ui/card'; // Card component
+import { Navigate } from 'react-router-dom'; // For navigation
+import { ProfileHeader } from '../components/profile/ProfileHeader'; // Profile header
+import { ResumeContent } from '../components/profile/resume/ResumeContent'; // Resume display/edit component
+import { KeywordAnalysis } from '../components/profile/keywords/KeywordAnalysis'; // Keyword analysis component
+import { useResume } from '../hooks/useResume'; // Hook for resume handling
+import { useState } from 'react'; // React state management
+import { uploadResume, insertResume } from '../api/users/mutations'; // Functions to handle file uploads and database inserts
+import { toast } from 'sonner'; // Toast notifications
+import { supabase } from '../integrations/supabase/client'; // Supabase client
 
 const Profile = () => {
-  const { user } = useAuth();
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [resumes, setResumes] = useState([]);
+  const { user } = useAuth(); // Authenticated user
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false); // Delete dialog visibility
+  const [isUploading, setIsUploading] = useState(false); // Uploading state
 
+  const [isAnalyzing, setIsAnalyzing] = useState(false); // Keyword analysis state
+  const [keywords, setKeywords] = useState<string[]>([]); // Extracted keywords
+
+  // Redirect to login if user is not authenticated
   if (!user) {
     console.log('[Profile] No user found, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
-  console.log('[Profile] Rendering for user:', user.id);
-
   const {
+    resumes,
+    selectedResumeId,
     resumeText,
     isEditing,
     isSaving,
-    isAnalyzing,
-    keywords,
-    nonKeywords,
     isLoading,
     setIsEditing,
     handleSaveResume,
-    handleDeleteKeywords,
+    handleDeleteResume,
     handleResumeTextChange,
-    handleReanalyze,
-    handleUpdateKeywords,
-    handleAddToNonKeywords,
-  } = useResume(user.id);
+  } = useResume(user.id); // Hook for handling resumes
 
-  console.log('[Profile] Current state:', {
-    hasResumeText: !!resumeText,
-    keywordsCount: keywords.length,
-    nonKeywordsCount: nonKeywords.length,
-    isLoading,
-    isEditing,
-    isAnalyzing
-  });
-
-  const handleDeleteResume = async (resumeFilePath: string) => {
-    try {
-      const userId = user.id;
-
-      // Delete the file from Supabase storage
-      const { error: deleteFileError } = await supabase.storage
-        .from('resumes')
-        .remove([resumeFilePath]);
-
-      if (deleteFileError) {
-        console.error("Error deleting resume file:", deleteFileError);
-        toast.error("Failed to delete resume file");
-        return;
-      }
-
-      // Delete the corresponding entry in the resume table
-      const { error: deleteEntryError } = await supabase
-        .from('resumes')
-        .delete()
-        .eq('user_id', userId)
-        .eq('file_path', resumeFilePath);
-
-      if (deleteEntryError) {
-        console.error("Error deleting resume entry:", deleteEntryError);
-        toast.error("Failed to delete resume entry");
-        return;
-      }
-
-      // Nullify the column in the user table
-      await supabase
-        .from('users')
-        .update({ resume_file_path: null })
-        .eq('user_id', userId);
-
-      toast.success("Resume deleted successfully");
-    } catch (error) {
-      console.error("Error during resume deletion:", error);
-      toast.error("An error occurred while deleting the resume");
+  // Trigger keyword analysis
+  const handleReanalyze = () => {
+    if (resumeText) {
+      setIsAnalyzing(true);
+      setTimeout(() => {
+        const extractedKeywords = resumeText
+          .split(/\s+/)
+          .filter(
+            (word, index, arr) => arr.indexOf(word) === index && word.length > 3
+          );
+        setKeywords(extractedKeywords);
+        setIsAnalyzing(false);
+      }, 2000);
     }
   };
 
+  // Clear all extracted keywords
+  const handleDeleteKeywords = () => {
+    setKeywords([]);
+  };
+
+  // Update keyword list
+  const handleUpdateKeywords = (updatedKeywords: string[]) => {
+    setKeywords(updatedKeywords);
+  };
+
+  // Handle resume file upload
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     setIsUploading(true);
     const file = event.target.files?.[0];
@@ -99,21 +73,30 @@ const Profile = () => {
     }
 
     try {
-      const uploadSuccess = await uploadResume(user.id, file); // Upload resume to Supabase
+      const uploadSuccess = await uploadResume(user.id, file);
       if (uploadSuccess) {
-        // Insert resume entry into the database
         const filePath = `${user.id}/${new Date().getTime()}-${file.name}`;
-        await insertResume(user.id, filePath); // Insert resume entry
-        setResumes((prev) => [...prev, { file_path: filePath }]); // Store the file path
+        await insertResume(user.id, filePath);
       }
+
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const text = e.target?.result as string;
         handleResumeTextChange(text);
+
+        // Update resume_text in the database
+        const { error } = await supabase
+          .from('resumes')
+          .update({ resume_text: text })
+          .eq('id', selectedResumeId);
+        if (error) {
+          throw new Error('Failed to update resume text.');
+        }
       };
       reader.readAsText(file);
     } catch (error) {
-      console.error("Error uploading resume:", error)
+      console.error('Error uploading resume:', error);
+      toast.error('Failed to upload resume');
     } finally {
       setIsUploading(false);
     }
@@ -131,37 +114,35 @@ const Profile = () => {
           {!isLoading && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="order-1">
-                <h2 className="text-2xl font-bold text-center mb-6">Keywords</h2>
-                <div className="h-full">
-                  <KeywordAnalysis
-                    resumeText={resumeText}
-                    isAnalyzing={isAnalyzing}
-                    keywords={keywords}
-                    onReanalyze={handleReanalyze}
-                    onDeleteKeywords={handleDeleteKeywords}
-                    onUpdateKeywords={handleUpdateKeywords}
-                    onAddToNonKeywords={handleAddToNonKeywords}
-                  />
-                </div>
+                <h2 className="text-2xl font-bold text-center mb-6">
+                  Keywords
+                </h2>
+                <KeywordAnalysis
+                  resumeText={resumeText}
+                  isAnalyzing={isAnalyzing}
+                  keywords={keywords}
+                  onReanalyze={handleReanalyze}
+                  onDeleteKeywords={handleDeleteKeywords}
+                  onUpdateKeywords={handleUpdateKeywords}
+                />
               </div>
-
               <div className="order-2">
                 <h2 className="text-2xl font-bold text-center mb-6">Resume</h2>
-                <div className="h-full">
-                  <ResumeContent
-                    isEditing={isEditing}
-                    resumeText={resumeText}
-                    onChange={handleResumeTextChange}
-                    onSave={() => handleSaveResume(resumeText)}
-                    isSaving={isSaving}
-                    onEdit={() => setIsEditing(!isEditing)}
-                    onUpload={handleUpload}
-                    isUploading={isUploading}
-                    showDeleteDialog={showDeleteDialog}
-                    setShowDeleteDialog={setShowDeleteDialog}
-                    onDelete={() => handleDeleteResume(resumes[0]?.file_path)} // Pass the correct file path here
-                  />
-                </div>
+                <ResumeContent
+                  isEditing={isEditing}
+                  resumeText={resumeText}
+                  onChange={handleResumeTextChange}
+                  onSave={() => handleSaveResume(resumeText)}
+                  isSaving={isSaving}
+                  onEdit={() => setIsEditing(!isEditing)}
+                  onUpload={handleUpload}
+                  isUploading={isUploading}
+                  showDeleteDialog={showDeleteDialog}
+                  setShowDeleteDialog={setShowDeleteDialog}
+                  onDelete={() => handleDeleteResume(selectedResumeId)}
+                  selectedResumeId={selectedResumeId} // Pass this prop
+                  resumes={resumes} // Pass this prop
+                />
               </div>
             </div>
           )}
@@ -172,4 +153,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
