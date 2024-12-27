@@ -1,15 +1,14 @@
-
 import { Card } from '../components/ui/card'; // Card component
 import { Navigate } from 'react-router-dom'; // For navigation
 import { ProfileHeader } from '../components/profile/ProfileHeader'; // Profile header
 import { ResumeContent } from '../components/profile/resume/ResumeContent'; // Resume display/edit component
 import { KeywordAnalysis } from '../components/profile/keywords/KeywordAnalysis'; // Keyword analysis component
-import { useResume } from '../hooks/useResume'; // Hook for resume handling
+import { useResume } from '../helpers/useResume'; // Hook for resume handling
 import { useState } from 'react'; // React state management
-import { uploadResume, insertResume } from '../api/users/mutations'; // Functions to handle file uploads and database inserts
+import { uploadResume, insertResume } from '../api/supabase/resumes'; // Functions to handle file uploads and database inserts
 import { toast } from 'sonner'; // Toast notifications
 import { supabase } from '../integrations/supabase/client'; // Supabase client
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../contexts/AuthContext';
 
 const Profile = () => {
   const { user } = useAuth(); // Authenticated user
@@ -39,7 +38,7 @@ const Profile = () => {
   } = useResume(user.id); // Hook for handling resumes
 
   // Trigger keyword analysis
-  const handleReanalyze = () => {
+  const handleAnalyzeKeywords = () => {
     if (resumeText) {
       setIsAnalyzing(true);
       setTimeout(() => {
@@ -122,7 +121,7 @@ const Profile = () => {
                   resumeText={resumeText}
                   isAnalyzing={isAnalyzing}
                   keywords={keywords}
-                  onReanalyze={handleReanalyze}
+                  onReanalyze={handleAnalyzeKeywords}
                   onDeleteKeywords={handleDeleteKeywords}
                   onUpdateKeywords={handleUpdateKeywords}
                 />

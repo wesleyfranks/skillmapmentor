@@ -1,6 +1,6 @@
-import { SignUpForm } from "@/components/auth/AuthForms";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { SignUpForm } from '@/components/auth';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -10,8 +10,8 @@ const Signup = () => {
       <div className="max-w-md mx-auto">
         <SignUpForm />
         <p className="text-center mt-4 text-muted-foreground">
-          Already have an account?{" "}
-          <Button variant="link" onClick={() => navigate("/login")}>
+          Already have an account?{' '}
+          <Button variant="link" onClick={() => navigate('/login')}>
             Sign in
           </Button>
         </p>

@@ -1,7 +1,7 @@
-import { updateUserResume, deleteUserKeywords } from "@/api/users";
+import { updateUserResume, deleteUserKeywords, deleteUserKeyword } from "@/api/supabase/resumes";
 import { toast } from "sonner";
 
-export const useResumeActions = (userId: string) => {
+export const useResumeActions = (resumeId: string, userId: string) => {
   const saveResume = async (resumeText: string) => {
     try {
       const success = await updateUserResume(userId, resumeText);
@@ -30,9 +30,29 @@ export const useResumeActions = (userId: string) => {
     }
   };
 
+  // Create a function that deletes a single keyword
+  // This function should call the deleteUserKeyword function
+  // and display a success or error toast
+  // The function should return a boolean
+  // indicating whether the keyword was deleted successfully
+  // The function should accept the resume ID, user ID, and keyword as arguments
+  const deleteKeyword = async (resumeId: string, userId: string, keyword: string) => {
+    try {
+      const success = await deleteUserKeyword(resumeId, userId, keyword);
+      if (success) {
+        toast.success("Keyword deleted successfully");
+      }
+      return success;
+    } catch (error) {
+      console.error("Error deleting keyword:", error);
+      toast.error("Failed to delete keyword");
+      return false;
+    }
+  };
+
   const deleteKeywords = async () => {
     try {
-      const success = await deleteUserKeywords(userId);
+      const success = await deleteUserKeywords(resumeId, userId);
       if (success) {
         toast.success("Keywords cleared successfully");
       }
@@ -47,6 +67,7 @@ export const useResumeActions = (userId: string) => {
   return {
     saveResume,
     deleteResume,
-    deleteKeywords,
+    deleteKeyword,
+    deleteKeywords
   };
 };

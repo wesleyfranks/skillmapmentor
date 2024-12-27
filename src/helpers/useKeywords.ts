@@ -6,6 +6,7 @@ export const useKeywords = (userId: string) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const analyzeResume = async (text: string, existingKeywords: string[] = []) => {
+    console.log("[useKeywords] analyzeResume");
     if (!text || isAnalyzing) return;
     
     console.log('[useKeywords] Starting analysis');
