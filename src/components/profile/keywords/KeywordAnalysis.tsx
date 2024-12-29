@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { KeywordToolbar } from './components/KeywordToolbar';
-import { KeywordContent } from './components/KeywordContent';
-import { useKeywordActions } from './hooks/useKeywordActions';
+import { KeywordToolbar } from './KeywordToolbar';
+import { KeywordContent } from './KeywordContent';
+import { useKeywordActions } from './useKeywordActions';
 
 interface KeywordAnalysisProps {
   resumeText: string;

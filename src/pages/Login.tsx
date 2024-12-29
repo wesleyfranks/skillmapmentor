@@ -1,5 +1,5 @@
 import { LoginForm } from '@/components/auth';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {

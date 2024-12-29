@@ -1,8 +1,8 @@
-import { EmptyState } from '@/components/ui/EmptyState';
+import { EmptyState } from '@/ui/EmptyState';
 import { ResumeEditor } from './ResumeEditor';
 import { ResumePreview } from './ResumePreview';
 import { File } from 'lucide-react';
-import { Toolbar } from '@/components/ui/Toolbar';
+import { Toolbar } from '@/ui/Toolbar';
 import { Edit, Save, Upload, Trash } from 'lucide-react';
 import {
   AlertDialog,
@@ -13,7 +13,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from '@/ui/alert-dialog';
 
 interface ResumeContentProps {
   isEditing: boolean;

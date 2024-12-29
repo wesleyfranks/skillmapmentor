@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../integrations/supabase/client'; // Corrected import path
+import { supabase } from '../api/supabase/client'; // Corrected import path
 import { toast } from 'sonner';
 
 export const useResumeText = (userId: string) => {

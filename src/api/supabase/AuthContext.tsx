@@ -1,13 +1,17 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
-import { signIn, signUp, signOut } from "@/api/supabase/auth";
+import { createContext, useContext, useEffect, useState } from 'react';
+import { Session, User } from '@supabase/supabase-js';
+import { supabase } from '@/api/supabase/client';
+import { signIn, signUp, signOut } from '@/api/supabase/auth';
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ data: any; error: any; }>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string
+  ) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<void>;
   loading: boolean;
 }
@@ -31,7 +35,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('[Auth] Auth state changed:', { event: _event, userId: session?.user?.id });
+      console.log('[Auth] Auth state changed:', {
+        event: _event,
+        userId: session?.user?.id,
+      });
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -45,7 +52,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
-  const handleSignUp = async (email: string, password: string, fullName: string) => {
+  const handleSignUp = async (
+    email: string,
+    password: string,
+    fullName: string
+  ) => {
     return await signUp(email, password, fullName);
   };
 
@@ -55,14 +66,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        session, 
-        user, 
-        signIn: handleSignIn, 
-        signUp: handleSignUp, 
-        signOut: handleSignOut, 
-        loading 
+    <AuthContext.Provider
+      value={{
+        session,
+        user,
+        signIn: handleSignIn,
+        signUp: handleSignUp,
+        signOut: handleSignOut,
+        loading,
       }}
     >
       {children}
@@ -73,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

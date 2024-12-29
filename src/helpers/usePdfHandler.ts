@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import * as pdfjs from 'pdfjs-dist';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner'; 
+import { toast } from 'sonner';
 import * as crypto from 'crypto';
-
+import {
+  updateResumesTableUserResume,
+  resumesTableUploadSingleResume,
+} from '@/api/supabase/resumes/resumes';
 
 export const usePdfHandler = (
   userId: string,
@@ -72,7 +74,6 @@ export const usePdfHandler = (
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      // 10MB size limit
       throw new Error(
         'PDF file is too large. Please upload a file under 10MB.'
       );
@@ -80,23 +81,30 @@ export const usePdfHandler = (
 
     setIsUploading(true);
     try {
-      const text = await extractTextFromPDF(file);
       const filePath = `${userId}/${crypto.randomUUID()}.pdf`;
-      const { error: uploadError } = await supabase.storage
-        .from('resumes')
-        .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      // Step 1: Upload file and insert row, capture resume_id
+      const resumeId = await resumesTableUploadSingleResume(userId, filePath);
 
-      const { error: updateError } = await supabase
-        .from('resumes')
-        .update({ resume_text: text, file_path: filePath })
-        .eq('id', userId);
+      if (!resumeId) {
+        throw new Error('Failed to upload resume and create database entry.');
+      }
 
-      if (updateError) throw updateError;
+      // Step 2: Extract text from PDF
+      const text = await extractTextFromPDF(file);
 
-      onTextExtracted(text);
-      toast.success('Resume uploaded and text extracted successfully.');
+      // Step 3: Update the existing row with extracted text
+      const success = await updateResumesTableUserResume(
+        userId,
+        resumeId,
+        text
+      );
+      if (success) {
+        onTextExtracted(text);
+        toast.success('Resume uploaded and text extracted successfully.');
+      } else {
+        throw new Error('Failed to update resume with extracted text.');
+      }
     } catch (error) {
       console.error('PDF upload error:', error);
       toast.error(error.message);

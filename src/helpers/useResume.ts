@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../integrations/supabase/client'; // Adjust the import path
 import { toast } from 'sonner';
+import {
+  getResumesTableUserMultipleResumes,
+  updateResumesTableUserResume,
+  deleteResumesTableUserSingleResume,
+} from '../api/supabase/resumes/resumes'; // Import functions from resumes.ts
 
 interface Resume {
   id: string;
@@ -10,28 +14,25 @@ interface Resume {
 
 export const useResume = (userId: string) => {
   const [resumes, setResumes] = useState<Resume[]>([]);
-  const [resumeId, setresumeId] = useState<string | null>(null);
+  const [resumeId, setResumeId] = useState<string | null>(null);
   const [resumeText, setResumeText] = useState<string>('');
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  // Fetch resumes from the database
   const fetchResumes = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('resumes')
-        .select('*')
-        .eq('user_id', userId);
-      if (error) throw error;
+      const data = await getResumesTableUserMultipleResumes(userId);
       setResumes(data || []);
       if (data?.length > 0) {
-        setresumeId(data[0].id);
+        setResumeId(data[0].id);
         setResumeText(data[0].resume_text || '');
       }
     } catch (error) {
-      console.error('Error fetching resumes:', error);
-      toast.error('Failed to fetch resumes.');
+      console.error('[useResume] Error fetching resumes:', error);
+      toast.error('Failed to fetch resumes. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -41,10 +42,12 @@ export const useResume = (userId: string) => {
     fetchResumes();
   }, [userId]);
 
+  // Update local resume text state
   const handleResumeTextChange = (text: string) => {
     setResumeText(text);
   };
 
+  // Save updated resume text
   const handleSaveResume = async (text: string) => {
     if (!resumeId) {
       toast.error('No resume selected to save.');
@@ -53,33 +56,51 @@ export const useResume = (userId: string) => {
 
     try {
       setIsSaving(true);
-      const { error } = await supabase
-        .from('resumes')
-        .update({ resume_text: text })
-        .eq('id', resumeId);
-      if (error) throw error;
-      toast.success('Resume saved successfully.');
-      setIsEditing(false);
-      fetchResumes(); // Refresh resumes
+      const success = await updateResumesTableUserResume(
+        userId,
+        resumeId,
+        text
+      );
+      if (success) {
+        toast.success('Resume saved successfully.');
+        setIsEditing(false);
+
+        // Update state directly to avoid unnecessary fetch
+        setResumes((prev) =>
+          prev.map((resume) =>
+            resume.id === resumeId ? { ...resume, resume_text: text } : resume
+          )
+        );
+      } else {
+        throw new Error('Failed to save resume.');
+      }
     } catch (error) {
-      console.error('Error saving resume:', error);
+      console.error('[useResume] Error saving resume:', error);
       toast.error('Failed to save resume.');
     } finally {
       setIsSaving(false);
     }
   };
 
+  // Delete a specific resume
   const handleDeleteResume = async (resumeId: string) => {
     try {
-      const { error } = await supabase
-        .from('resumes')
-        .delete()
-        .eq('id', resumeId);
-      if (error) throw error;
-      toast.success('Resume deleted successfully.');
-      fetchResumes(); // Refresh resumes
+      const success = await deleteResumesTableUserSingleResume(
+        userId,
+        resumeId
+      );
+      if (success) {
+        toast.success('Resume deleted successfully.');
+
+        // Update state directly to avoid unnecessary fetch
+        setResumes((prev) => prev.filter((resume) => resume.id !== resumeId));
+        setResumeId(null); // Reset selected resume ID
+        setResumeText(''); // Clear the resume text
+      } else {
+        throw new Error('Failed to delete resume.');
+      }
     } catch (error) {
-      console.error('Error deleting resume:', error);
+      console.error('[useResume] Error deleting resume:', error);
       toast.error('Failed to delete resume.');
     }
   };
