@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
+import { Card } from "@/ui/card";
 
 const Index = () => {
   const navigate = useNavigate();

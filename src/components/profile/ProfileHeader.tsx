@@ -1,5 +1,5 @@
 import { User } from "@supabase/supabase-js";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/ui/skeleton";
 
 interface ProfileHeaderProps {
   user: User | null;
