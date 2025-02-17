@@ -1,9 +1,10 @@
+import { updateResumesTableUserResume } from '@/api/supabase/resumes/table/update';
 import {
-  updateResumesTableUserResume,
-  deleteResumesTableUserSingleResume,
-  deleteResumesTableUserDeleteMultipleKeywords,
-  deleteResumesTableUserDeleteSingleKeyword,
-} from '@/api/supabase/resumes/resumes';
+  deleteResumesTableKeywords,
+  deleteResumesTableKeyword,
+  deleteResumesTableRow,
+  deleteResumesTableRows,
+} from '@/api/supabase/resumes/table/delete';
 import { toast } from 'sonner';
 
 // Ensure proper error handling and consistent behavior
@@ -49,7 +50,7 @@ export const useResumeActions = (resumeId: string, userId: string) => {
     }
 
     try {
-      const success = await deleteResumesTableUserSingleResume(
+      const success = await deleteResumesTableRow(
         userId,
         resumeId
       );
@@ -71,7 +72,7 @@ export const useResumeActions = (resumeId: string, userId: string) => {
     }
 
     try {
-      const success = await deleteResumesTableUserDeleteSingleKeyword(
+      const success = await deleteResumesTableKeyword(
         keyword,
         resumeId,
         userId
@@ -94,10 +95,7 @@ export const useResumeActions = (resumeId: string, userId: string) => {
     }
 
     try {
-      const success = await deleteResumesTableUserDeleteMultipleKeywords(
-        resumeId,
-        userId
-      );
+      const success = await deleteResumesTableKeywords(resumeId, userId);
       if (success) {
         toast.success('Keywords cleared successfully');
       }

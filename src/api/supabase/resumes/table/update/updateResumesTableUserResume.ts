@@ -12,7 +12,7 @@ export const updateResumesTableUserResume = async (
     const { error } = await supabase
       .from('resumes')
       .update({
-        resumeText,
+        resume_text: resumeText, // updated column name
         keywords,
         updated_at: new Date().toISOString(),
       })
@@ -20,7 +20,7 @@ export const updateResumesTableUserResume = async (
       .eq('user_id', userId);
 
     if (error) throw error;
-    toast("Resume updated successfully"); 
+    toast('Resume updated successfully');
     return true;
   } catch (error) {
     handleError(error, 'Failed to update resume');

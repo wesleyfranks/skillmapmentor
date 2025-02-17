@@ -10,6 +10,11 @@ export const useKeywordAnalysis = (userId: string, resumeId: string) => {
   const [retryCount, setRetryCount] = useState(0);
   const MAX_RETRIES = 3;
 
+  /**
+   * Analyze the resume and extract keywords.
+   * @param text - The resume text to analyze.
+   * @param existingKeywords - Existing keywords to consider.
+   */
   const analyzeResume = async (
     text: string,
     existingKeywords: string[] = []
@@ -39,18 +44,28 @@ export const useKeywordAnalysis = (userId: string, resumeId: string) => {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
 
-      const filteredKeywords = (data.keywords as string)
-        .split(',')
-        .map((k) => k.trim())
-        .filter((k) => k && !nonKeywords.includes(k.toLowerCase()));
+      const filteredKeywords: string[] = Array.from(
+        new Set(
+          (data.keywords as unknown[])
+            .map((k) => {
+              if (typeof k === 'string') {
+                return k.trim();
+              }
+              console.error(
+                `[useKeywordAnalysis] Invalid keyword detected:`,
+                k
+              );
+              return null;
+            })
+            .filter(Boolean)
+        )
+      ).filter((k) => k && !nonKeywords.includes(k.toLowerCase()));
 
-      const keywordList = Array.from(new Set(filteredKeywords)).sort();
-
-      setKeywords(keywordList);
+      setKeywords(filteredKeywords);
 
       const { error: updateError } = await supabase
         .from('resumes')
-        .update({ keywords: keywordList })
+        .update({ keywords: filteredKeywords })
         .eq('id', resumeId)
         .eq('user_id', userId);
 
@@ -85,12 +100,20 @@ export const useKeywordAnalysis = (userId: string, resumeId: string) => {
     }
   };
 
+  /**
+   * Reanalyze the resume with the current text and keywords.
+   * @param resumeText - The resume text to reanalyze.
+   */
   const handleReanalyze = async (resumeText: string) => {
     if (!resumeText || isAnalyzing) return;
     setIsAnalyzing(true);
     await analyzeResume(resumeText, keywords);
   };
 
+  /**
+   * Add a keyword to the non-keywords list.
+   * @param keyword - The keyword to add to the non-keywords list.
+   */
   const addToNonKeywords = async (keyword: string) => {
     try {
       const lowercaseKeyword = keyword.toLowerCase();

@@ -1,8 +1,6 @@
 import { supabase } from '../../../client';
 import { handleError } from '../../../../../helpers/handleError';
 
-
-
 export const insertResumesTableResume = async (
   userId: string,
   filePath: string,
@@ -13,15 +11,14 @@ export const insertResumesTableResume = async (
   console.log('[resumesTableUploadSingleResume] Start:', { userId, filePath });
 
   try {
-    // Check for existing resume by userId and filePath
+    // Use maybeSingle() to avoid a 406 error when no row is found
     const { data: existingResume, error: fetchError } = await supabase
       .from('resumes')
       .select('id, file_path, resume_text')
-      .eq('user_id', userId)
-      .eq('file_path', filePath)
-      .single();
+      .match({ user_id: userId, file_path: filePath })
+      .maybeSingle();
 
-    if (fetchError && fetchError.code !== 'PGRST116') {
+    if (fetchError) {
       console.error(
         '[resumesTableUploadSingleResume] Error fetching existing resume:',
         fetchError
@@ -44,8 +41,7 @@ export const insertResumesTableResume = async (
           non_keywords: nonKeywords || [],
           updated_at: new Date().toISOString(),
         })
-        .eq('id', existingResume.id)
-        .eq('user_id', userId);
+        .match({ id: existingResume.id, user_id: userId });
 
       if (updateError) {
         console.error(
@@ -78,7 +74,7 @@ export const insertResumesTableResume = async (
         updated_at: new Date().toISOString(),
       })
       .select('id')
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('[resumesTableUploadSingleResume] Insert failed:', error);
@@ -86,9 +82,9 @@ export const insertResumesTableResume = async (
     }
 
     console.log('[resumesTableUploadSingleResume] Insert successful:', {
-      resumeId: data.id,
+      resumeId: data?.id,
     });
-    return data.id;
+    return data?.id || null;
   } catch (error) {
     handleError(
       error,

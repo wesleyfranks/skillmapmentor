@@ -11,6 +11,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import Pricing from './pages/Pricing';
+import { ResumeProvider } from '@/components/profile/resume/ResumeContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,7 +46,15 @@ const AppRoutes = () => {
       />
       <Route
         path="/profile"
-        element={user ? <Profile /> : <Navigate to="/login" replace />}
+        element={
+          user ? (
+            <ResumeProvider>
+              <Profile />
+            </ResumeProvider>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

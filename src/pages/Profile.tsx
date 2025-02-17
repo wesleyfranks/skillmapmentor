@@ -1,221 +1,185 @@
-import { Card } from '../ui/card'; // Card component
-import { Navigate } from 'react-router-dom'; // For navigation
-import { ProfileHeader } from '../components/profile/ProfileHeader'; // Profile header
-import { ResumeContent } from '../components/profile/resume/ResumeContent'; // Resume display/edit component
-import { KeywordAnalysis } from '../components/profile/keywords/KeywordAnalysis'; // Keyword analysis component
-import { useResume } from '../helpers/useResume'; // Hook for resume handling
-import { useState } from 'react'; // React state management
-import {
-  resumesTableUploadSingleResume,
-  storageBucketResumeUpload,
-  updateResumesTableUserResume,
-} from '../api/supabase/resumes/resumes';
-import { usePdfHandler } from '../helpers/usePdfHandler';
-// Functions to handle file uploads and database inserts
-import { toast } from 'sonner'; // Toast notifications
-import { useAuth } from '../api/supabase/AuthContext';
+import React, { useEffect, useState } from 'react';
+import { useResumeContext } from '@/components/profile/resume/ResumeContext';
+import { useKeywords } from '@/helpers/useKeywords';
+import { usePdfHandler } from '@/helpers/usePdfHandler';
+import { Button } from '@/ui/button';
+import { Input } from '@/ui/input';
+import { Textarea } from '@/ui/textarea';
+import { useAuth } from '@/api/supabase/AuthContext';
 
 const Profile = () => {
-  const { user } = useAuth(); // Authenticated user
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false); // Delete dialog visibility
-  const [isUploading, setIsUploading] = useState(false); // Uploading state
+  const { resumeState, setResumeState } = useResumeContext();
+  const { user } = useAuth();
+  const [keywordList, setKeywordList] = useState<string[]>([]);
 
-  const [isAnalyzing, setIsAnalyzing] = useState(false); // Keyword analysis state
-  const [keywords, setKeywords] = useState<string[]>([]); // Extracted keywords
+  useEffect(() => {
+    if (user && !resumeState.userId) {
+      setResumeState((prev) => ({ ...prev, userId: user.id }));
+    }
+  }, [user, resumeState.userId, setResumeState]);
 
-  // Redirect to login if user is not authenticated
-  if (!user) {
-    console.log('[Profile] No user found, redirecting to login');
-    return <Navigate to="/login" replace />;
-  }
+  // Use selectedResume for analysis
+  const selectedResumeId = resumeState.selectedResume?.id || '';
+  const { analyzeResume, isAnalyzing } = useKeywords(
+    selectedResumeId,
+    resumeState.userId || ''
+  );
 
-  const {
-    resumes,
-    resumeId,
-    resumeText,
-    isEditing,
-    isSaving,
-    isLoading,
-    setIsEditing,
-    handleSaveResume,
-    handleDeleteResume,
-    handleResumeTextChange,
-  } = useResume(user.id); // Hook for handling resumes
+  // Upload PDF
+  const { handleFileUpload, isUploading } = usePdfHandler(
+    resumeState.userId || '',
+    (extractedText: string) => {
+      setResumeState((prev) => {
+        if (!prev.selectedResume) return prev;
+        return {
+          ...prev,
+          selectedResume: {
+            ...prev.selectedResume,
+            resume_text: extractedText,
+          },
+        };
+      });
+    }
+  );
 
-  // Trigger keyword analysis
-  const handleAnalyzeKeywords = () => {
-    if (resumeText) {
-      setIsAnalyzing(true);
-      setTimeout(() => {
-        const extractedKeywords = resumeText
-          .split(/\s+/)
-          .filter(
-            (word, index, arr) => arr.indexOf(word) === index && word.length > 3
-          );
-        setKeywords(extractedKeywords);
-        setIsAnalyzing(false);
-      }, 2000);
+  const handleUpload = async (file: File) => {
+    const uploadedFilePath = await handleFileUpload(file);
+    if (uploadedFilePath) {
+      setResumeState((prev) => {
+        if (!prev.selectedResume) return prev;
+        return {
+          ...prev,
+          selectedResume: {
+            ...prev.selectedResume,
+            file_path: uploadedFilePath,
+          },
+        };
+      });
+      console.log('[Profile] File uploaded successfully:', uploadedFilePath);
     }
   };
 
-  // Clear all extracted keywords
-  const handleDeleteKeywords = () => {
-    setKeywords([]);
-  };
-
-  // Update keyword list
-  const handleUpdateKeywords = (updatedKeywords: string[]) => {
-    setKeywords(updatedKeywords);
-  };
-
-  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('[handleUpload] Start upload process');
-    setIsUploading(true);
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      console.warn('[handleUpload] No file selected for upload');
-      setIsUploading(false);
-      return;
-    }
-
-    // Validate file type
-    if (
-      ![
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/x-iwork-pages-sffpages',
-      ].includes(file.type)
-    ) {
-      toast.error(
-        'Invalid file type. Only PDF, Word (.doc, .docx), and Pages files are allowed.'
-      );
-      console.error('[handleUpload] Invalid file type:', file.type);
-      setIsUploading(false);
+  // Analyze Resume
+  const handleAnalyzeResume = async () => {
+    const text = resumeState.selectedResume?.resume_text;
+    if (!text) {
+      console.error('[Profile] No resume text to analyze.');
       return;
     }
 
     try {
-      console.log(
-        '[handleUpload] Uploading file to storage bucket:',
-        file.name
+      const response = await analyzeResume(
+        text,
+        resumeState.selectedResume?.keywords || []
       );
-      const filePath = await storageBucketResumeUpload(user.id, file);
 
-      if (!filePath) {
+      console.log('[Profile] Raw Response:', response);
+
+      // Ensure response is valid before accessing properties
+      if (!response || typeof response !== 'object') {
+        console.error('[Profile] Error: Invalid response structure:', response);
+        return;
+      }
+
+      // Ensure keywords are formatted as an array
+      let extractedKeywords = response.keywords;
+      if (typeof extractedKeywords === 'string') {
+        extractedKeywords = extractedKeywords.split(',').map((k) => k.trim());
+      }
+
+      if (!Array.isArray(extractedKeywords)) {
         console.error(
-          '[handleUpload] File upload failed. Aborting database insert.'
+          '[Profile] Error: Keywords should be an array:',
+          response
         );
-        toast.error('Failed to upload file to storage');
         return;
       }
 
       console.log(
-        '[handleUpload] File uploaded successfully. Proceeding with database insert:',
-        filePath
+        '[Profile] Resume analysis successful. Extracted Keywords:',
+        extractedKeywords
       );
-      const resumeId = await resumesTableUploadSingleResume(user.id, filePath);
 
-      if (resumeId) {
-        console.log(
-          '[handleUpload] Resume inserted/updated successfully:',
-          resumeId
-        );
-        toast.success('Resume uploaded successfully');
+      setResumeState((prev) => {
+        if (!prev.selectedResume) return prev;
+        return {
+          ...prev,
+          selectedResume: {
+            ...prev.selectedResume,
+            keywords: extractedKeywords,
+          },
+        };
+      });
 
-        // Trigger pdfHandler to extract resume text and update the table
-        const extractedText = await usePdfHandler(file); // Assuming pdfHandler returns text
-        if (extractedText) {
-          console.log('[handleUpload] Extracted resume text:', extractedText);
-
-          const keywords = extractedText
-            .split(/\s+/)
-            .filter(
-              (word, index, arr) =>
-                arr.indexOf(word) === index && word.length > 3
-            ); // Example keyword extraction logic
-
-          console.log('[handleUpload] Extracted keywords:', keywords);
-
-          const updateSuccess = await updateResumesTableUserResume(
-            user.id,
-            resumeId,
-            extractedText,
-            keywords
-          );
-
-          if (updateSuccess) {
-            console.log(
-              '[handleUpload] Resume text and keywords updated successfully'
-            );
-          } else {
-            console.error(
-              '[handleUpload] Failed to update resume text and keywords'
-            );
-          }
-        } else {
-          console.error('[handleUpload] Failed to extract text from resume');
-        }
-      } else {
-        console.error(
-          '[handleUpload] Failed to insert/update resume in the database'
-        );
-      }
+      setKeywordList(extractedKeywords);
     } catch (error) {
-      console.error('[handleUpload] Error during upload process:', error);
-      toast.error('Failed to upload resume');
-    } finally {
-      setIsUploading(false);
-      console.log('[handleUpload] Upload process completed');
+      console.error('[Profile] Resume analysis error:', error);
     }
   };
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-7xl mx-auto">
-        <Card className="p-6">
-          <h1 className="text-2xl font-bold mb-6">Profile</h1>
-          <div className="space-y-4 mb-8">
-            <ProfileHeader user={user} isLoading={isLoading} />
-          </div>
+  useEffect(() => {
+    if (resumeState.selectedResume?.keywords) {
+      setKeywordList([...resumeState.selectedResume.keywords]);
+    }
+  }, [resumeState.selectedResume?.keywords]);
 
-          {!isLoading && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="order-1">
-                <h2 className="text-2xl font-bold text-center mb-6">
-                  Keywords
-                </h2>
-                <KeywordAnalysis
-                  resumeText={resumeText}
-                  isAnalyzing={isAnalyzing}
-                  keywords={keywords}
-                  onReanalyze={handleAnalyzeKeywords}
-                  onDeleteKeywords={handleDeleteKeywords}
-                  onUpdateKeywords={handleUpdateKeywords}
-                />
-              </div>
-              <div className="order-2">
-                <h2 className="text-2xl font-bold text-center mb-6">Resume</h2>
-                <ResumeContent
-                  isEditing={isEditing}
-                  resumeId={resumeId}
-                  resumeText={resumeText}
-                  onChange={handleResumeTextChange}
-                  onSave={() => handleSaveResume(resumeText)}
-                  isSaving={isSaving}
-                  onEdit={() => setIsEditing(!isEditing)}
-                  onUpload={handleUpload}
-                  isUploading={isUploading}
-                  showDeleteDialog={showDeleteDialog}
-                  setShowDeleteDialog={setShowDeleteDialog}
-                  onDelete={() => handleDeleteResume(resumeId)}
-                  resumes={resumes} // Pass this prop
-                />
-              </div>
-            </div>
-          )}
-        </Card>
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Profile</h1>
+
+      {/* Upload Resume */}
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold mb-2">Upload Resume</h2>
+        <Input
+          type="file"
+          accept=".pdf,.doc,.docx,.txt"
+          disabled={isUploading}
+          onChange={(e) => {
+            if (e.target.files?.[0]) handleUpload(e.target.files[0]);
+          }}
+        />
+      </div>
+
+      {/* Resume Text */}
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold mb-2">Resume Text</h2>
+        <Textarea
+          placeholder="Paste your resume text here"
+          value={resumeState.selectedResume?.resume_text || ''}
+          onChange={(e) => {
+            setResumeState((prev) => {
+              if (!prev.selectedResume) return prev;
+              return {
+                ...prev,
+                selectedResume: {
+                  ...prev.selectedResume,
+                  resume_text: e.target.value,
+                },
+              };
+            });
+          }}
+        />
+        <Button
+          className="mt-2"
+          onClick={handleAnalyzeResume}
+          disabled={isAnalyzing || !resumeState.selectedResume?.resume_text}
+        >
+          Analyze Resume
+        </Button>
+      </div>
+
+      {/* Keywords Display */}
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold mb-2">Keywords</h2>
+        {keywordList.length > 0 ? (
+          <ul>
+            {keywordList.map((keyword, index) => (
+              <li key={index}>{keyword}</li>
+            ))}
+          </ul>
+        ) : (
+          <p>No keywords found yet.</p>
+        )}
       </div>
     </div>
   );

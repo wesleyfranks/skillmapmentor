@@ -1,10 +1,8 @@
+import { deleteResumesTableRow } from '@/api/supabase/resumes/table/delete/deleteResumesTableRow';
+import { getResumesTableUserMultipleResumes } from '@/api/supabase/resumes/table/select';
+import { updateResumesTableUserResume } from '@/api/supabase/resumes/table/update';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import {
-  getResumesTableUserMultipleResumes,
-  updateResumesTableUserResume,
-  deleteResumesTableUserSingleResume,
-} from '../api/supabase/resumes/resumes'; // Import functions from resumes.ts
 
 interface Resume {
   id: string;
@@ -85,7 +83,7 @@ export const useResume = (userId: string) => {
   // Delete a specific resume
   const handleDeleteResume = async (resumeId: string) => {
     try {
-      const success = await deleteResumesTableUserSingleResume(
+      const success = await deleteResumesTableRow( 
         userId,
         resumeId
       );
