@@ -1,6 +1,8 @@
-import { type ToolbarAction } from '@/ui/Toolbar';
-import { Toolbar } from '@/ui/Toolbar';
-import { Copy, Trash2, RotateCw, CheckSquare } from 'lucide-react';
+// src/components/profile/keywords/KeywordToolbar.tsx
+
+import React from 'react';
+import { LucideIcon, Copy, Trash2, RotateCw, CheckSquare } from 'lucide-react';
+import { Toolbar, ToolbarAction } from '@/ui/Toolbar';
 
 interface KeywordToolbarProps {
   keywords: string[];
@@ -11,27 +13,25 @@ interface KeywordToolbarProps {
   onReanalyze: () => void;
 }
 
-export const KeywordToolbar = ({
+export function KeywordToolbar({
   keywords,
   isAnalyzing,
   isCopying,
   onCopy,
   onDelete,
   onReanalyze,
-}: KeywordToolbarProps) => {
+}: KeywordToolbarProps) {
+  const CopyIcon: LucideIcon = isCopying ? CheckSquare : Copy;
+
   const toolbarActions: ToolbarAction[] = [
     {
       label: 'Copy All',
-      icon: isCopying ? CheckSquare : Copy,
+      icon: CopyIcon,
       onClick: onCopy,
       disabled: !keywords.length || isAnalyzing,
-      variant: isCopying ? 'default' : 'outline',
-      className: isCopying
-        ? 'bg-green-500 hover:bg-green-600 border-0'
-        : undefined,
-      iconClassName: isCopying ? 'text-white' : undefined,
-      tooltip: 'Copy all keywords to clipboard', // Added tooltip
-      'aria-label': 'Copy All', // Added for screen readers
+      variant: 'default',
+      isProcessing: isCopying,
+      tooltip: 'Copy all keywords to clipboard',
     },
     {
       label: 'Clear All',
@@ -39,20 +39,19 @@ export const KeywordToolbar = ({
       onClick: onDelete,
       disabled: !keywords.length || isAnalyzing,
       variant: 'destructive',
-      tooltip: 'Clear all keywords', // Added tooltip
-      'aria-label': 'Clear All', // Added for screen readers
+      tooltip: 'Delete all keywords',
     },
     {
       label: isAnalyzing ? 'Analyzing...' : 'Analyze',
       icon: RotateCw,
       onClick: onReanalyze,
       isProcessing: isAnalyzing,
+      disabled: !keywords.length && !isAnalyzing,
       variant: 'default',
       stretch: true,
-      tooltip: isAnalyzing ? 'Analyzing keywords...' : 'Analyze keywords', // Added tooltip
-      'aria-label': isAnalyzing ? 'Analyzing' : 'Analyze', // Added for screen readers
+      tooltip: 'Re-analyze the resume for keywords',
     },
   ];
 
   return <Toolbar actions={toolbarActions} />;
-};
+}

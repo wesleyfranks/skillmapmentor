@@ -1,3 +1,5 @@
+// src/components/profile/resume/ResumeContent.tsx
+
 import { EmptyState } from '@/ui/EmptyState';
 import { ResumeEditor } from './ResumeEditor';
 import { ResumePreview } from './ResumePreview';
@@ -27,7 +29,7 @@ interface ResumeContentProps {
   isUploading: boolean;
   showDeleteDialog: boolean;
   setShowDeleteDialog: (show: boolean) => void;
-  onDelete: (resumeId: string, filePath: string) => void; // Accept two arguments for deletion
+  onDelete: (resumeId: string, filePath: string) => void;
   resumes: { id: string; file_path: string }[];
 }
 
@@ -52,13 +54,13 @@ export const ResumeContent = ({
       icon: isEditing ? Save : Edit,
       onClick: isEditing ? onSave : onEdit,
       isProcessing: isSaving,
-      variant: isEditing ? ('default' as const) : ('outline' as const),
+      variant: 'default' as const, // Purple
     },
     {
       label: 'Delete Resume',
       icon: Trash,
       onClick: () => setShowDeleteDialog(true),
-      variant: 'destructive' as const,
+      variant: 'destructive' as const, // Red
       disabled: !resumeText || isEditing,
     },
     {
@@ -67,7 +69,7 @@ export const ResumeContent = ({
       onClick: onUpload,
       isProcessing: isUploading,
       disabled: isEditing,
-      variant: 'default' as const,
+      variant: 'default' as const, // Purple
       stretch: true,
     },
   ];
@@ -77,16 +79,11 @@ export const ResumeContent = ({
       console.error('No selected resume for deletion.');
       return;
     }
-
-    const selectedResume = resumes.find(
-      (resume) => resume.id === resumeId
-    );
+    const selectedResume = resumes.find((r) => r.id === resumeId);
     if (!selectedResume) {
       console.error('Resume not found.');
       return;
     }
-
-    // Pass resumeId and filePath to the onDelete handler
     onDelete(selectedResume.id, selectedResume.file_path);
   };
 
@@ -102,6 +99,27 @@ export const ResumeContent = ({
   return (
     <div className="space-y-6">
       <Toolbar actions={toolbarActions} />
+
+      {/* ADDED: Minimal Resumes List */}
+      {resumes && resumes.length > 0 && (
+        <div className="border border-gray-300 rounded p-3">
+          <h3 className="font-semibold mb-2 text-sm">Resumes List</h3>
+          <ul className="space-y-1 text-sm">
+            {resumes.map((r) => (
+              <li key={r.id} className="flex items-center justify-between">
+                <span>{r.file_path || 'Untitled Resume'}</span>
+                {/* Example: highlight if it's the selected one */}
+                {r.id === resumeId && (
+                  <span className="text-xs bg-purple-600 text-white px-2 py-0.5 rounded">
+                    Selected
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {isEditing ? (
         <ResumeEditor
           resumeText={resumeText}
@@ -113,6 +131,7 @@ export const ResumeContent = ({
       ) : (
         <ResumePreview resumeText={resumeText} />
       )}
+
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>

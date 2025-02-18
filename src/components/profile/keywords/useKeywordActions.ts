@@ -1,5 +1,7 @@
-import { useState } from "react";
-import { toast } from "sonner";
+// src/components/profile/keywords/useKeywordActions.ts
+
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export const useKeywordActions = (
   keywords: string[],
